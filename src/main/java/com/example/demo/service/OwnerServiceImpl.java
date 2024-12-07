@@ -220,11 +220,19 @@ public class OwnerServiceImpl{
         Optional<Owner> owner = ownerRepository.findById(idPropietario);
 
         if(!owner.isPresent()){
+            System.out.println("Este propietario no existe");
+            return null;
+
+        }
+        Owner own = owner.get();
+
+        Optional<UserEntity> user = userRepository.findUserEntityByIdentification(ownerResponse.identification());
+        if(user.isPresent()){
+            System.out.println("La identificación que quieres agregar, ya existe. No puedes agregar dos usuarios con la misma cédula");
             return null;
 
         }
 
-        Owner own = owner.get();
 
         if(own.getUser().getState() == State.INACTIVE){
             return  null;
@@ -256,13 +264,14 @@ public class OwnerServiceImpl{
 
 
         Optional<Owner> owner = ownerRepository.findById(id);
-        Owner own = owner.get();
 
-        if(own == null){
 
+        if(!owner.isPresent()){
+            System.out.println("La id de este propietario no existe");
             return null;
 
         }
+        Owner own = owner.get();
 
         if(own.getUser().getState() == State.INACTIVE){
             return null;

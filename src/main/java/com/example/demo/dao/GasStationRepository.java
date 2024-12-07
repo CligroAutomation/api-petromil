@@ -17,4 +17,8 @@ public interface GasStationRepository extends CrudRepository<GasStation, Long> {
 
     List<GasStation> findGasStationsByState(State state);
 
+    GasStation findGasStationByNameAndAddressAndState(String name, String address, State state);
+
+    GasStation findByOwnerAndNameAndAddress(Owner owner, String name, String address);
+
 }

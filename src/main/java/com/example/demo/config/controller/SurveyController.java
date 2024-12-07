@@ -28,7 +28,7 @@ public class SurveyController {
 
             errorResponse = new GlobalErrorResponse(
                     false,
-                    "El usuario no puede ser creado porque ya existe o tiene el rol ADMIN asignado.");
+                    "Gasolinera no existe o trabajador tampoco, no se encuentra alguno de los dos");
 
             return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
         }

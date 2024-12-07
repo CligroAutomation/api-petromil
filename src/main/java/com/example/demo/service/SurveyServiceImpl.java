@@ -56,10 +56,11 @@ public class SurveyServiceImpl {
         GasStationWorker gsw = gasStationWorkerOptional.get();
 
 
+
         Survey survey = new Survey();
         survey.setGasStationWorker(gsw);
         survey.setGasStation(gs);
-        survey.setRating(Rating.EXCELLENT);
+        survey.setRating(surveyRequest.rating());
         survey.setComment(surveyRequest.comment());
 
         surveyRepository.save(survey);

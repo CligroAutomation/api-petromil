@@ -6,6 +6,9 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Setter
 @Getter
 @NoArgsConstructor
@@ -37,7 +40,7 @@ public class GasStationWorker {
 
     //@Lob // Esto indica que es un campo grande (como BLOB o CLOB en base de datos)
     @Column(name = "image")
-    private String image; // Atributo para almacenar la imagen
+    private String image = ""; // Atributo para almacenar la imagen
 
     @Column(name = "state")
     private State state;
@@ -46,6 +49,11 @@ public class GasStationWorker {
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "gas_station_id")
     private GasStation gasStation;
+
+
+    //Relación 1 a N con encuestas
+    @OneToMany(mappedBy = "gasStationWorker", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Survey> surveys = new ArrayList<>();
 
 
 

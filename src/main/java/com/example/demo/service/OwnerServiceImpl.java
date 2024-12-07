@@ -74,8 +74,8 @@ public class OwnerServiceImpl{
                 user.setState(State.ACTIVE);
 
                 // Buscar el rol ADMIN existente
-                Role adminRole = roleRepository.findByRoleEnum(RoleEnum.ADMIN)
-                        .orElseThrow(() -> new IllegalArgumentException("El rol ADMIN no existe"));
+                Role adminRole = roleRepository.findByRoleEnum(RoleEnum.OWNER)
+                        .orElseThrow(() -> new IllegalArgumentException("El rol OWNER no existe"));
 
                 // Buscar el permiso READ y asociarlo al rol ADMIN
                 Permission p = permissionRepository.findByName("READ")
@@ -94,8 +94,8 @@ public class OwnerServiceImpl{
                 // Actualizar el propietario asociado al usuario
                 Owner owner = user.getOwner();
                 owner.setUser(user);
-                owner.setName(ownerResponse.nombre());
-                owner.setPhone(ownerResponse.telefono());
+                owner.setName(ownerResponse.name());
+                owner.setPhone(ownerResponse.phone());
 
                 userRepository.save(user);  // Guardar el usuario con sus cambios
 
@@ -126,7 +126,7 @@ public class OwnerServiceImpl{
         newUser.setState(State.ACTIVE);
 
         // Buscar el rol ADMIN existente o lanzar excepción si no está definido
-        Role adminRole = roleRepository.findByRoleEnum(RoleEnum.ADMIN)
+        Role adminRole = roleRepository.findByRoleEnum(RoleEnum.OWNER)
                 .orElseThrow(() -> new IllegalArgumentException("El rol ADMIN no existe"));
 
         // Buscar el permiso READ y asociarlo al rol ADMIN
@@ -146,8 +146,8 @@ public class OwnerServiceImpl{
         // Crear un nuevo propietario (Owner) y asociarlo al usuario
         Owner owner = new Owner();
         owner.setUser(newUser);
-        owner.setName(ownerResponse.nombre());
-        owner.setPhone(ownerResponse.telefono());
+        owner.setName(ownerResponse.name());
+        owner.setPhone(ownerResponse.phone());
         newUser.setOwner(owner);
 
         // Guardar el usuario en la base de datos
@@ -178,9 +178,9 @@ public class OwnerServiceImpl{
 
         Optional<Owner> o = ownerRepository.findById(id);
 
-        Owner own = o.get();
+        if (o.isPresent()) {
 
-        if (own != null) {
+            Owner own = o.get();
 
             if(own.getUser().getState() == State.INACTIVE){
                 return null;
@@ -208,24 +208,32 @@ public class OwnerServiceImpl{
 
 
 
-    public OwnerResponse updateOwner(OwnerResponse ownerResponse) {
+    public OwnerResponse updateOwner(Long idPropietario, OwnerResponse ownerResponse) {
 
-        Optional<Owner> owner = ownerRepository.findById(ownerResponse.idOwner());
 
-        Owner own = owner.get();
-        if(own == null){
+        if(idPropietario == null){
             return null;
 
         }
+
+
+        Optional<Owner> owner = ownerRepository.findById(idPropietario);
+
+        if(!owner.isPresent()){
+            return null;
+
+        }
+
+        Owner own = owner.get();
 
         if(own.getUser().getState() == State.INACTIVE){
             return  null;
         }
 
         own.setUser(own.getUser());
-        own.setName(ownerResponse.nombre());
-        own.setPhone(ownerResponse.telefono());
-
+        own.setName(ownerResponse.name());
+        own.setPhone(ownerResponse.phone());
+        own.getUser().setIdentification(ownerResponse.identification());
         //Seteando la nueva contraseña
         own.getUser().setPassword(passwordEncoder.encode(ownerResponse.password()));
         own.getUser().setEmail(ownerResponse.email());

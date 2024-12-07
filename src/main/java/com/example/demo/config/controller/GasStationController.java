@@ -2,7 +2,8 @@ package com.example.demo.config.controller;
 
 import com.example.demo.domain.dto.GasStationResponse;
 import com.example.demo.domain.dto.GasStationsByOwnerResponse;
-import com.example.demo.domain.dto.GlobalResponse;
+import com.example.demo.domain.dto.GlobalErrorResponse;
+import com.example.demo.domain.dto.GlobalSuccessResponse;
 import com.example.demo.service.GasStationServiceImpl;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,28 +14,29 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/owner")
+@RequestMapping("/propietarios")
 public class GasStationController {
 
     @Autowired
     private GasStationServiceImpl gasStationService;
 
-    @PostMapping("/create-gasStation")
-    public ResponseEntity<?> postGasStation(@RequestBody @Valid GasStationResponse gasStationResponse) {
+    @PostMapping("/{idOwner}/gasolineras")
+    public ResponseEntity<?> postGasStation(@RequestBody @Valid GasStationResponse gasStationResponse, @PathVariable Long idOwner) {
 
-        System.out.println("Entro al controlador");
+        System.out.println("Entro al controlador post");
 
-        GlobalResponse<?> response;
-        GasStationResponse gasStation = gasStationService.createGasStation(gasStationResponse);
+        GlobalSuccessResponse<?> response;
+        GlobalErrorResponse globalErrorResponse;
+        GasStationResponse gasStation = gasStationService.createGasStation(gasStationResponse, idOwner);
 
         if (gasStation == null) {
-            response = new GlobalResponse<>(
+            globalErrorResponse = new GlobalErrorResponse(
                     false,
-                    "Esta gasolinera existe y tienen un dueño asignado",
-                    "Se intentó agregar dos veces a un dueño la misma gasolinera");
-            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+                    "Esta gasolinera existe y tienen un dueño asignado");
+
+            return new ResponseEntity<>(globalErrorResponse, HttpStatus.BAD_REQUEST);
         }
-        response = new GlobalResponse<>(
+        response = new GlobalSuccessResponse<>(
                 true,
                 "Gasolinera creado correctamente",
                 gasStation);
@@ -42,22 +44,23 @@ public class GasStationController {
 
     }
 
-    @GetMapping("/get-gas-stations-by-owner/{id}")
-    public ResponseEntity<?> getGasStationsByIdOwner(@PathVariable Long id) {
+    @GetMapping("/{idOwner}/gasolineras")
+    public ResponseEntity<?> getGasStationsByIdOwner(@PathVariable Long idOwner) {
 
-        GlobalResponse<?> response;
-        List<GasStationsByOwnerResponse> gasStations = gasStationService.getGasStationByOwner(id);
+        GlobalSuccessResponse<?> response;
+        List<GasStationsByOwnerResponse> gasStations = gasStationService.getGasStationByOwner(idOwner);
+        GlobalErrorResponse globalErrorResponse;
+
 
         if (gasStations == null) {
-            response = new GlobalResponse<>(
+            globalErrorResponse = new GlobalErrorResponse(
                     false,
-                    "No hay gasolineras asociadas a este dueño",
-                    "Este dueño no existe o sí existe pero no tiene gasolineras");
-            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+                    "No hay gasolineras asociadas a este dueño");
+            return new ResponseEntity<>(globalErrorResponse, HttpStatus.BAD_REQUEST);
 
         }
 
-        response = new GlobalResponse<>(
+        response = new GlobalSuccessResponse<>(
                 true,
                 "Gasolineras del usuario obtenidas correctamente",
                 gasStations);
@@ -65,22 +68,23 @@ public class GasStationController {
 
     }
 
-    @GetMapping("/get-all-gas-stations")
+    @GetMapping("/gasolineras")
     public ResponseEntity<?> getAllGasStation() {
 
         List<GasStationsByOwnerResponse> gasStations = gasStationService.getAllGasStation();
-        GlobalResponse<?> response;
+        GlobalSuccessResponse<?> response;
+        GlobalErrorResponse globalErrorResponse;
+
 
         if (gasStations == null) {
-            response = new GlobalResponse<>(
+            globalErrorResponse = new GlobalErrorResponse(
                     false,
-                    "No existen gasolineras",
-                    "No hay gasolineras en la base de datos");
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+                    "No existen gasolineras");
+            return new ResponseEntity<>(globalErrorResponse, HttpStatus.NOT_FOUND);
 
         }
 
-        response = new GlobalResponse<>(
+        response = new GlobalSuccessResponse<>(
                 true,
                 "Lista de gasolineras encontradas correctamente",
                 gasStations);
@@ -88,22 +92,23 @@ public class GasStationController {
 
     }
 
-    @PutMapping("/edit-gas-station")
-    public ResponseEntity<?> editGasStation(@RequestBody @Valid GasStationResponse gasStationResponse) {
+    @PutMapping("/{idPropietario}/gasolineras/{idGasolinera}")
+    public ResponseEntity<?> editGasStation(@RequestBody @Valid GasStationResponse gasStationResponse, @PathVariable Long idPropietario,@PathVariable Long idGasolinera ) {
 
-        GlobalResponse<?> response;
-        GasStationsByOwnerResponse gasStations = gasStationService.updateGasStation(gasStationResponse);
+        GlobalErrorResponse globalErrorResponse;
+        System.out.println("Entrar al controlador");
+        GlobalSuccessResponse<?> response;
+        GasStationsByOwnerResponse gasStations = gasStationService.updateGasStation(gasStationResponse, idPropietario, idGasolinera);
 
         if (gasStations == null) {
-            response = new GlobalResponse<>(
+            globalErrorResponse = new GlobalErrorResponse(
                     false,
-                    "dueño inactivo o ya tiene la gasstation asociada ",
-                    "dueño inactivo o ya tiene la gasstation asociada");
-            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+                    "dueño inactivo o ya tiene la gasstation asociada O NO EXISTE GASOLINERA ");
+            return new ResponseEntity<>(globalErrorResponse, HttpStatus.BAD_REQUEST);
 
         }
 
-        response = new GlobalResponse<>(
+        response = new GlobalSuccessResponse<>(
                 true,
                 "Gasolinera editada correctamente",
                 gasStations);
@@ -111,22 +116,23 @@ public class GasStationController {
 
     }
 
-    @DeleteMapping("/delete-gas-station/{idGasStation}")
-    public ResponseEntity<?> deleteGasStation(@PathVariable Long idGasStation) {
+    @DeleteMapping("/{idPropietario}/gasolineras/{idGasolinera}")
+    public ResponseEntity<?> deleteGasStation(@PathVariable Long idPropietario, @PathVariable Long idGasolinera ) {
 
-        GlobalResponse<?> response;
-        GasStationsByOwnerResponse gasStations = gasStationService.deleteGasStation(idGasStation);
-
+        System.out.println("Controlador de delete");
+        GlobalSuccessResponse<?> response;
+        GlobalErrorResponse globalErrorResponse;
+        GasStationsByOwnerResponse gasStations = gasStationService.deleteGasStation(idPropietario,idGasolinera );
+        System.out.println("GasStationsByOwnerResponse"+ gasStations);
         if (gasStations == null) {
-            response = new GlobalResponse<>(
+            globalErrorResponse = new GlobalErrorResponse(
                     false,
-                    "Esta gasolinera no existe",
-                    "No se encontró es id de gasolinera en la base de daos");
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+                    "Esta gasolinera no existe");
+            return new ResponseEntity<>(globalErrorResponse, HttpStatus.NOT_FOUND);
 
         }
 
-        response = new GlobalResponse<>(
+        response = new GlobalSuccessResponse<>(
                 true,
                 "Gasolinera eliminada correctamente",
                 gasStations);

@@ -2,7 +2,8 @@ package com.example.demo.config.controller;
 
 import com.example.demo.domain.dto.GasStationWorkerRequest;
 import com.example.demo.domain.dto.GasStationWorkerResponse;
-import com.example.demo.domain.dto.GlobalResponse;
+import com.example.demo.domain.dto.GlobalErrorResponse;
+import com.example.demo.domain.dto.GlobalSuccessResponse;
 import com.example.demo.service.CloudinaryService;
 import com.example.demo.service.GasStationWorkerServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +16,7 @@ import java.io.IOException;
 import java.util.List;
 
 @RestController
-@RequestMapping("/gas-station")
+@RequestMapping("/gasolineras")
 public class GasStationWorkerController {
 
     @Autowired
@@ -50,20 +51,22 @@ public class GasStationWorkerController {
     //
     // }
 
-    @GetMapping("/get-worker-by-identification/{identification}")
-    public ResponseEntity<?> getWorkerByIdentification(@PathVariable String identification) {
+    @GetMapping("/trabajadores/{workerIdentification}")
+    public ResponseEntity<?> getWorkerByIdentification(@PathVariable String workerIdentification) {
 
-        GlobalResponse<?> response;
-        GasStationWorkerResponse gasStationWorkerf = gasStationWorkerService.getGasStationWorkerById(identification);
+        GlobalSuccessResponse<?> response;
+        GasStationWorkerResponse gasStationWorkerf = gasStationWorkerService.getGasStationWorkerById(workerIdentification);
+
+        GlobalErrorResponse errorResponse;
 
         if (gasStationWorkerf == null) {
-            response = new GlobalResponse<>(
+            errorResponse = new GlobalErrorResponse(
                     false,
-                    "No existe este trabajador en la base de datos",
-                    "identifiación inexistente");
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+                    "No existe este trabajador en la base de datos");
+
+            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
         }
-        response = new GlobalResponse<>(
+        response = new GlobalSuccessResponse<>(
                 true,
                 "Trabajador obtenido correctamente",
                 gasStationWorkerf);
@@ -71,21 +74,23 @@ public class GasStationWorkerController {
 
     }
 
-    @GetMapping("/get-AllWorkers-by-idGasStation/{idGasStation}")
-    public ResponseEntity<?> getWorkerByIdentification(@PathVariable Long idGasStation) {
+    @GetMapping("/{idGasolinera}/trabajadores")
+    public ResponseEntity<?> getWorkersByIdGasStation(@PathVariable Long idGasolinera) {
 
-        GlobalResponse<?> response;
+        System.out.println("Entró al controlador");
+        GlobalSuccessResponse<?> response;
+        GlobalErrorResponse errorResponse;
+
         List<GasStationWorkerResponse> gasStationWorkerf = gasStationWorkerService
-                .getAllWorkersByIdGasStation(idGasStation);
+                .getAllWorkersByIdGasStation(idGasolinera);
 
         if (gasStationWorkerf == null) {
-            response = new GlobalResponse<>(
+            errorResponse = new GlobalErrorResponse(
                     false,
-                    "No existen trabajadores en esta gasolinera",
                     "No hay trabajadores o la gasolinera no existe");
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
         }
-        response = new GlobalResponse<>(
+        response = new GlobalSuccessResponse<>(
                 true,
                 "Trabajadores obtenidos correctamente",
                 gasStationWorkerf);
@@ -118,20 +123,20 @@ public class GasStationWorkerController {
     //
     // }
 
-    @DeleteMapping("/delete-worker/{id}")
-    public ResponseEntity<?> deleteWorkerById(@PathVariable Long id) {
+    @DeleteMapping("/{idGasolinera}/trabajadores/{idTrabajador}")
+    public ResponseEntity<?> deleteWorkerById(@PathVariable Long idGasolinera, @PathVariable Long idTrabajador) {
 
-        GlobalResponse<?> response;
-        GasStationWorkerResponse gasStationWorkerf = gasStationWorkerService.deleteGasStationWorkerById(id);
+        GlobalSuccessResponse<?> response;
+        GlobalErrorResponse errorResponse;
+        GasStationWorkerResponse gasStationWorkerf = gasStationWorkerService.deleteGasStationWorkerById(idGasolinera,idTrabajador);
 
         if (gasStationWorkerf == null) {
-            response = new GlobalResponse<>(
+            errorResponse = new GlobalErrorResponse(
                     false,
-                    "No existe este trabajador en la base de datos",
-                    "ide no econtrada en base de datos");
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+                    "No existe este trabajador (id) en la base de datos");
+            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
         }
-        response = new GlobalResponse<>(
+        response = new GlobalSuccessResponse<>(
                 true,
                 "Trabajador eliminado correctamente",
                 gasStationWorkerf);
@@ -139,37 +144,35 @@ public class GasStationWorkerController {
 
     }
 
-    @PostMapping("/create-worker-with-image")
+    @PostMapping("/{idGasolinera}/trabajadores")
     public ResponseEntity<?> addWorkerWithImage(
-            @RequestParam("idGasStationWorker") Long idGasStationWorker,
+            //@RequestParam("idGasStationWorker") Long idGasStationWorker,
             @RequestParam("identification") String identification,
             @RequestParam("name") String name,
             @RequestParam("phone") String phone,
-            @RequestParam("imageUrl") String imageUrl,
-            @RequestParam("idGasStation") Long idGasStation,
-            @RequestParam("image") MultipartFile image) throws IOException {
+            //@RequestParam("imageUrl") String imageUrl,
+            //@RequestParam("idGasStation") Long idGasStation,
+            @RequestParam("image") MultipartFile image, @PathVariable Long idGasolinera) throws IOException {
 
-        System.out.println("Entro al controlador");
+        System.out.println("Entro al controlador POSTMAPINNG");
 
         // Convertir el JSON a un objeto GasStationWorkerRequest
 
-        GasStationWorkerRequest gasStationWorker = new GasStationWorkerRequest(idGasStationWorker,
+        GasStationWorkerRequest gasStationWorker = new GasStationWorkerRequest(
                 identification,
-                name, phone,
-                imageUrl,
-                idGasStation);
+                name, phone);
 
-        GasStationWorkerResponse worker = gasStationWorkerService.addWorkerWithImage(gasStationWorker, image);
-        GlobalResponse<?> response;
+        GasStationWorkerResponse worker = gasStationWorkerService.addWorkerWithImage(gasStationWorker, idGasolinera, image);
+        GlobalSuccessResponse<?> response;
+        GlobalErrorResponse errorResponse;
 
         if (worker == null) {
-            response = new GlobalResponse<>(
+            errorResponse = new GlobalErrorResponse(
                     false,
-                    "No existen trabajadores en esta gasolinera",
-                    "No hay trabajadores o la gasolinera no existe o ya existe este trabajador en esa gasolinera");
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+                    "la gasolinera no existe o ya existe este trabajador en esa gasolinera");
+            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
         }
-        response = new GlobalResponse<>(
+        response = new GlobalSuccessResponse<>(
                 true,
                 "Trabajador creado correctamente",
                 worker);
@@ -177,40 +180,38 @@ public class GasStationWorkerController {
 
     }
 
-    @PutMapping("/edit-worker-with-imagen")
+    @PutMapping("/{idGasolinera}/trabajadores/{idTrabajador}")
     public ResponseEntity<?> editWorkerWithImage(
-            @RequestParam("idGasStationWorker") Long idGasStationWorker,
+            //@RequestParam("idGasStationWorker") Long idGasStationWorker,
             @RequestParam("identification") String identification,
             @RequestParam("name") String name,
             @RequestParam("phone") String phone,
-            @RequestParam("imageUrl") String imageUrl,
-            @RequestParam("idGasStation") Long idGasStation,
-            @RequestParam("image") MultipartFile image) throws IOException {
+            //@RequestParam("imageUrl") String imageUrl,
+            //@RequestParam("idGasStation") Long idGasStation,
+            @RequestParam("image") MultipartFile image, @PathVariable Long idGasolinera, @PathVariable Long idTrabajador) throws IOException {
 
         System.out.println("Entro al controlador");
 
         // Convertir el JSON a un objeto GasStationWorkerRequest
 
-        GasStationWorkerRequest gasStationWorker = new GasStationWorkerRequest(idGasStationWorker,
+        GasStationWorkerRequest gasStationWorker = new GasStationWorkerRequest(
                 identification,
-                name, phone,
-                imageUrl,
-                idGasStation);
+                name, phone);
 
         GasStationWorkerResponse worker = gasStationWorkerService.updateGasStationWorkerWithImage(gasStationWorker,
-                image);
-        GlobalResponse<?> response;
+                image, idGasolinera, idTrabajador);
+        GlobalSuccessResponse<?> response;
+        GlobalErrorResponse errorResponse;
 
         if (worker == null) {
-            response = new GlobalResponse<>(
+            errorResponse = new GlobalErrorResponse(
                     false,
-                    "No existen trabajadores en esta gasolinera",
                     "No hay trabajadores o la gasolinera no existe o ya existe este trabajador en esa gasolinera");
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
         }
-        response = new GlobalResponse<>(
+        response = new GlobalSuccessResponse<>(
                 true,
-                "Trabajador creado correctamente",
+                "Trabajador editado correctamente",
                 worker);
         return new ResponseEntity<>(response, HttpStatus.OK);
 

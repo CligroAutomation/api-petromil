@@ -49,13 +49,13 @@ public class BackendForPetromilGasStationApplication {
 					.build();
 
 			/* Create ROLES */
-			Role roleAdmin = Role.builder()
-					.roleEnum(RoleEnum.ADMIN)
+			Role roleOWNER = Role.builder()
+					.roleEnum(RoleEnum.OWNER)
 					.permissionList(Set.of(createPermission, readPermission, updatePermission, deletePermission))
 					.build();
 
-			Role roleSuperAdmin = Role.builder()
-					.roleEnum(RoleEnum.SUPERADMIN)
+			Role roleAdmin = Role.builder()
+					.roleEnum(RoleEnum.ADMIN)
 					.permissionList(Set.of(createPermission, readPermission, updatePermission, deletePermission, refactorPermission))
 					.build();
 
@@ -71,7 +71,7 @@ public class BackendForPetromilGasStationApplication {
 					.accountNoLocked(true)
 					.credentialNoExpired(true)
 					.state(State.ACTIVE)
-					.roles(Set.of(roleAdmin))
+					.roles(Set.of(roleOWNER))
 					.build();
 
 			Owner owner = Owner.builder()
@@ -89,7 +89,7 @@ public class BackendForPetromilGasStationApplication {
 					.accountNoLocked(true)
 					.credentialNoExpired(true)
 					.state(State.ACTIVE)
-					.roles(Set.of(roleSuperAdmin))
+					.roles(Set.of(roleAdmin))
 					.build();
 
 

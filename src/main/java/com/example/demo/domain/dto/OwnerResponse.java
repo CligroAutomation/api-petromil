@@ -2,8 +2,8 @@ package com.example.demo.domain.dto;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@JsonPropertyOrder({ "idOwner", "identification", "nombre", "telefono", "email", "password" })
-public record OwnerResponse(Long idOwner, String identification, String nombre, String telefono, String email,
+@JsonPropertyOrder({ "idOwner", "identification", "name", "phone", "email", "password" })
+public record OwnerResponse(Long idOwner, String identification, String name, String phone, String email,
         String password) {
 
 }

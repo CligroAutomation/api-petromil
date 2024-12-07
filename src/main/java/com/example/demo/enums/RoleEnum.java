@@ -2,6 +2,6 @@ package com.example.demo.enums;
 
 public enum RoleEnum {
 
-    ADMIN,
-    SUPERADMIN
+    OWNER,
+    ADMIN
 }

@@ -73,7 +73,7 @@ public class GasStationServiceImpl {
                     ownerRepository.save(owner); // Guardar al Owner con la nueva gasolinera
 
                     // Retornar el DTO de GasStation con los datos requeridos
-                    return new GasStationResponse(gs.getId(), gs.getName(), gs.getAddress());
+                    return new GasStationResponse(gs.getId(), gs.getName(), gs.getAddress(), owner.getId());
 
                 }
 
@@ -98,7 +98,7 @@ public class GasStationServiceImpl {
 
             gs.setState(State.ACTIVE);
             ownerRepository.save(owner); // Guardar al Owner con la nueva gasolinera
-            return new GasStationResponse(gs.getId(), gs.getName(), gs.getAddress());
+            return new GasStationResponse(gs.getId(), gs.getName(), gs.getAddress(), owner.getId());
 
         }
 
@@ -118,7 +118,7 @@ public class GasStationServiceImpl {
         ownerRepository.save(owner); // Guardar al Owner con la nueva gasolinera
 
         // Retornar el DTO de GasStation con los datos requeridos
-        return new GasStationResponse(gasStation.getId(), gasStation.getName(), gasStation.getAddress());
+        return new GasStationResponse(gasStation.getId(), gasStation.getName(), gasStation.getAddress(), owner.getId());
     }
 
     public List<GasStationsByOwnerResponse> getGasStationByOwner(Long id) {

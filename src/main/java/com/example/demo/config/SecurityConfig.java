@@ -58,6 +58,8 @@ public class SecurityConfig {
                                         http.requestMatchers(HttpMethod.POST, "/auth/**").permitAll();
                                         http.requestMatchers(HttpMethod.GET, "/auth/**").permitAll();
 
+                                        http.requestMatchers(HttpMethod.GET, "/propietarios/gasolineras").permitAll(); // getAllGasStation
+
                                         // Configurar los endpoints privados
 
                                         // Ownercontroller
@@ -83,9 +85,7 @@ public class SecurityConfig {
                                         http.requestMatchers(HttpMethod.GET, "/propietarios/{idOwner}/gasolineras")
                                                         .hasAnyRole("ADMIN",
                                                                         "OWNER"); // Check getGasStationsByIdOwner
-                                        http.requestMatchers(HttpMethod.GET, "/propietarios/gasolineras")
-                                                        .hasRole("ADMIN"); // Check
-                                                                           // getAllGasStation
+
                                         http.requestMatchers(HttpMethod.PUT,
                                                         "/propietarios/{idPropietario}/gasolineras/{idGasolinera}")
                                                         .hasAnyRole("ADMIN", "OWNER"); // Check editGasStation

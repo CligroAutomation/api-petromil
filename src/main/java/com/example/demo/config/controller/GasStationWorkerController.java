@@ -25,31 +25,6 @@ public class GasStationWorkerController {
     @Autowired
     private CloudinaryService cloudinaryService;
 
-    // @PostMapping("/create-worker")
-    // public ResponseEntity<?> postGasStationWorker(@RequestBody @Valid
-    // GasStationWorker gasStationWorker) {
-    //
-    // GlobalResponse<?> response;
-    // GasStationWorkerResponse gasStationWorkerf =
-    // gasStationWorkerService.addGasStationWorker(gasStationWorker);
-    //
-    // if(gasStationWorkerf == null){
-    // response = new GlobalResponse<>(
-    // false,
-    // "No se creó este trabajador",
-    // "Paso algo, no se pudo crear"
-    // );
-    // return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-    // }
-    // response = new GlobalResponse<>(
-    // true,
-    // "Trabajador creado correctamente",
-    // gasStationWorkerf
-    // );
-    // return new ResponseEntity<>(response, HttpStatus.OK);
-    //
-    //
-    // }
 
     @GetMapping("/trabajadores/{workerIdentification}")
     public ResponseEntity<?> getWorkerByIdentification(@PathVariable String workerIdentification) {
@@ -77,7 +52,7 @@ public class GasStationWorkerController {
     @GetMapping("/{idGasolinera}/trabajadores")
     public ResponseEntity<?> getWorkersByIdGasStation(@PathVariable Long idGasolinera) {
 
-        System.out.println("Entró al controlador");
+        System.out.println("Entró al controlador getWorkersByIdGasStation" );
         GlobalSuccessResponse<?> response;
         GlobalErrorResponse errorResponse;
 
@@ -98,30 +73,6 @@ public class GasStationWorkerController {
 
     }
 
-    // @PutMapping("/edit-worker")
-    // public ResponseEntity<?> getWorkerByIdentification(@RequestBody @Valid
-    // GasStationWorkerRequest gasStationWorkerRequest){
-    //
-    // GlobalResponse<?> response;
-    // GasStationWorkerResponse gasStationWorkerf =
-    // gasStationWorkerService.updateGasStationWorker(gasStationWorkerRequest);
-    //
-    // if(gasStationWorkerf == null){
-    // response = new GlobalResponse<>(
-    // false,
-    // "No se pudo editar",
-    // "El trabajador no existe en la base de datos"
-    // );
-    // return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-    // }
-    // response = new GlobalResponse<>(
-    // true,
-    // "Trabajador editado correctamente",
-    // gasStationWorkerf
-    // );
-    // return new ResponseEntity<>(response, HttpStatus.OK);
-    //
-    // }
 
     @DeleteMapping("/{idGasolinera}/trabajadores/{idTrabajador}")
     public ResponseEntity<?> deleteWorkerById(@PathVariable Long idGasolinera, @PathVariable Long idTrabajador) {

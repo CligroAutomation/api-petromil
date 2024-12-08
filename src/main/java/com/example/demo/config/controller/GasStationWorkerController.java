@@ -5,12 +5,10 @@ import com.example.demo.dao.GasStationWorkerRepository;
 import com.example.demo.dao.OwnerRepository;
 import com.example.demo.domain.GasStation;
 import com.example.demo.domain.GasStationWorker;
-import com.example.demo.domain.Owner;
 import com.example.demo.domain.dto.GasStationWorkerRequest;
 import com.example.demo.domain.dto.GasStationWorkerResponse;
 import com.example.demo.domain.dto.GlobalErrorResponse;
 import com.example.demo.domain.dto.GlobalSuccessResponse;
-import com.example.demo.service.CloudinaryService;
 import com.example.demo.service.GasStationWorkerServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -27,207 +25,216 @@ import java.util.Optional;
 @RequestMapping("/gasolineras")
 public class GasStationWorkerController {
 
-    @Autowired
-    private GasStationWorkerServiceImpl gasStationWorkerService;
+        @Autowired
+        private GasStationWorkerServiceImpl gasStationWorkerService;
 
-    @Autowired
-    private CloudinaryService cloudinaryService;
+        @Autowired
+        private OwnerRepository ownerRepository;
 
-    @Autowired
-    private OwnerRepository ownerRepository;
+        @Autowired
+        private GasStationRepository gasStationRepository;
 
-    @Autowired
-    private GasStationRepository gasStationRepository;
+        @Autowired
+        private GasStationWorkerRepository gasStationWorkerRepository;
 
-    @Autowired
-    private GasStationWorkerRepository gasStationWorkerRepository;
+        @GetMapping("/trabajadores/{workerIdentification}")
+        public ResponseEntity<?> getWorkerByIdentification(@PathVariable String workerIdentification,
+                        Principal principal) {
 
+                Long authenticatedOwnerId = ownerRepository.getOwnerIdByEmail(principal.getName());
 
-    @GetMapping("/trabajadores/{workerIdentification}")
-    public ResponseEntity<?> getWorkerByIdentification(@PathVariable String workerIdentification, Principal principal) {
+                // Verificar si el usuario es ADMIN
+                boolean isAdmin = principal.getName().equals("jgasparlopez29@gmail.com");
+                if (!isAdmin) {
+                        // Si no es ADMIN, verificar si el OWNER está intentando acceder solo a sus
+                        // propios trabajadores
+                        // Buscar el trabajador por su identificación
+                        Optional<GasStationWorker> worker = gasStationWorkerRepository
+                                        .findByIdentification(workerIdentification);
 
-        Long authenticatedOwnerId = ownerRepository.getOwnerIdByEmail(principal.getName());
+                        if (worker.isEmpty()) {
+                                return new ResponseEntity<>(
+                                                new GlobalErrorResponse(false,
+                                                                "No existe este trabajador en la base de datos"),
+                                                HttpStatus.NOT_FOUND);
+                        }
 
-        // Verificar si el usuario es ADMIN
-        boolean isAdmin = principal.getName().equals("jgasparlopez29@gmail.com");
-        if (!isAdmin) {
-            // Si no es ADMIN, verificar si el OWNER está intentando acceder solo a sus propios trabajadores
-            // Buscar el trabajador por su identificación
-            Optional<GasStationWorker> worker = gasStationWorkerRepository.findByIdentification(workerIdentification);
+                        // Obtener la gasolinera asociada al trabajador
+                        GasStationWorker gsw = worker.get();
+                        GasStation gasStation = gsw.getGasStation();
 
-            if (worker.isEmpty()) {
+                        // Verificar si la gasolinera del trabajador pertenece al dueño autenticado
+                        if (!gasStation.getOwner().getId().equals(authenticatedOwnerId)) {
+                                return new ResponseEntity<>(
+                                                new GlobalErrorResponse(false,
+                                                                "No tienes permiso para acceder a los datos de este trabajador"),
+                                                HttpStatus.FORBIDDEN);
+                        }
+                }
+
+                // Si el usuario es ADMIN o tiene permisos, devolver la información del
+                // trabajador
+                GasStationWorkerResponse gasStationWorkerResponse = gasStationWorkerService
+                                .getGasStationWorkerById(workerIdentification);
+
+                // Respuesta exitosa
                 return new ResponseEntity<>(
-                        new GlobalErrorResponse(false, "No existe este trabajador en la base de datos"),
-                        HttpStatus.NOT_FOUND
-                );
-            }
+                                new GlobalSuccessResponse<>(true, "Trabajador obtenido correctamente",
+                                                gasStationWorkerResponse),
+                                HttpStatus.OK);
 
-            // Obtener la gasolinera asociada al trabajador
-            GasStationWorker  gsw = worker.get();
-            GasStation gasStation = gsw.getGasStation();
-
-            // Verificar si la gasolinera del trabajador pertenece al dueño autenticado
-            if (!gasStation.getOwner().getId().equals(authenticatedOwnerId)) {
-                return new ResponseEntity<>(
-                        new GlobalErrorResponse(false, "No tienes permiso para acceder a los datos de este trabajador"),
-                        HttpStatus.FORBIDDEN
-                );
-            }
         }
 
-        // Si el usuario es ADMIN o tiene permisos, devolver la información del trabajador
-        GasStationWorkerResponse gasStationWorkerResponse = gasStationWorkerService.getGasStationWorkerById(workerIdentification);
+        @GetMapping("/{idGasolinera}/trabajadores")
+        public ResponseEntity<?> getWorkersByIdGasStation(@PathVariable Long idGasolinera) {
 
-        // Respuesta exitosa
-        return new ResponseEntity<>(
-                new GlobalSuccessResponse<>(true, "Trabajador obtenido correctamente", gasStationWorkerResponse),
-                HttpStatus.OK
-        );
+                System.out.println("Entró al controlador getWorkersByIdGasStation");
+                GlobalSuccessResponse<?> response;
 
-    }
+                List<GasStationWorkerResponse> gasStationWorkerf = gasStationWorkerService
+                                .getAllWorkersByIdGasStation(idGasolinera);
 
-    @GetMapping("/{idGasolinera}/trabajadores")
-    public ResponseEntity<?> getWorkersByIdGasStation(@PathVariable Long idGasolinera) {
+                response = new GlobalSuccessResponse<>(
+                                true,
+                                "Trabajadores obtenidos correctamente",
+                                gasStationWorkerf);
+                return new ResponseEntity<>(response, HttpStatus.OK);
 
-        System.out.println("Entró al controlador getWorkersByIdGasStation" );
-        GlobalSuccessResponse<?> response;
-
-
-        List<GasStationWorkerResponse> gasStationWorkerf = gasStationWorkerService
-                .getAllWorkersByIdGasStation(idGasolinera);
-
-
-        response = new GlobalSuccessResponse<>(
-                true,
-                "Trabajadores obtenidos correctamente",
-                gasStationWorkerf);
-        return new ResponseEntity<>(response, HttpStatus.OK);
-
-    }
-
-
-    @DeleteMapping("/{idGasolinera}/trabajadores/{idTrabajador}")
-    public ResponseEntity<?> deleteWorkerById(@PathVariable Long idGasolinera, @PathVariable Long idTrabajador, Principal principal) {
-
-        Long authenticatedOwnerId = ownerRepository.getOwnerIdByEmail(principal.getName());
-
-        // Verificar si el usuario es ADMIN o el propietario de la gasolinera
-        boolean isAdmin = principal.getName().equals("jgasparlopez29@gmail.com");
-        if (!isAdmin) {
-            // Verificar si el OWNER está intentando acceder a una gasolinera que le pertenece
-            GasStation gasStation = gasStationRepository.findById(idGasolinera)
-                    .orElse(null);
-
-            if (gasStation == null || !gasStation.getOwner().getId().equals(authenticatedOwnerId)) {
-                return new ResponseEntity<>(
-                        new GlobalErrorResponse(false, "No tienes permiso para eliminar trabajadores de esta gasolinera"),
-                        HttpStatus.FORBIDDEN
-                );
-            }
         }
 
-        GlobalSuccessResponse<?> response;
+        @DeleteMapping("/{idGasolinera}/trabajadores/{idTrabajador}")
+        public ResponseEntity<?> deleteWorkerById(@PathVariable Long idGasolinera, @PathVariable Long idTrabajador,
+                        Principal principal) {
 
-        GasStationWorkerResponse gasStationWorkerf = gasStationWorkerService.deleteGasStationWorkerById(idGasolinera,idTrabajador);
+                Long authenticatedOwnerId = ownerRepository.getOwnerIdByEmail(principal.getName());
 
-        response = new GlobalSuccessResponse<>(
-                true,
-                "Trabajador eliminado correctamente",
-                gasStationWorkerf);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+                // Verificar si el usuario es ADMIN o el propietario de la gasolinera
+                boolean isAdmin = principal.getName().equals("jgasparlopez29@gmail.com");
+                if (!isAdmin) {
+                        // Verificar si el OWNER está intentando acceder a una gasolinera que le
+                        // pertenece
+                        GasStation gasStation = gasStationRepository.findById(idGasolinera)
+                                        .orElse(null);
 
-    }
+                        if (gasStation == null || !gasStation.getOwner().getId().equals(authenticatedOwnerId)) {
+                                return new ResponseEntity<>(
+                                                new GlobalErrorResponse(false,
+                                                                "No tienes permiso para eliminar trabajadores de esta gasolinera"),
+                                                HttpStatus.FORBIDDEN);
+                        }
+                }
 
-    @PostMapping("/{idGasolinera}/trabajadores")
-    public ResponseEntity<?> addWorkerWithImage(
-            @RequestParam("identification") String identification,
-            @RequestParam("name") String name,
-            @RequestParam("phone") String phone,
-            @RequestParam("image") MultipartFile image, @PathVariable Long idGasolinera, Principal principal) throws IOException {
+                GlobalSuccessResponse<?> response;
 
-        System.out.println("Entro al controlador POSTMAPINNG");
+                GasStationWorkerResponse gasStationWorkerf = gasStationWorkerService
+                                .deleteGasStationWorkerById(idGasolinera, idTrabajador);
 
-        Long authenticatedOwnerId = ownerRepository.getOwnerIdByEmail(principal.getName());
+                response = new GlobalSuccessResponse<>(
+                                true,
+                                "Trabajador eliminado correctamente",
+                                gasStationWorkerf);
+                return new ResponseEntity<>(response, HttpStatus.OK);
 
-        // Verificar si el usuario es ADMIN o el propietario de la gasolinera
-        boolean isAdmin = principal.getName().equals("jgasparlopez29@gmail.com");
-        if (!isAdmin) {
-            // Verificar si el OWNER está intentando acceder a una gasolinera que le pertenece
-            GasStation gasStation = gasStationRepository.findById(idGasolinera)
-                    .orElse(null);
-
-            if (gasStation == null || !gasStation.getOwner().getId().equals(authenticatedOwnerId)) {
-                return new ResponseEntity<>(
-                        new GlobalErrorResponse(false, "No tienes permiso para asignar trabajadores a esta gasolinera"),
-                        HttpStatus.FORBIDDEN
-                );
-            }
         }
 
-        // Convertir el JSON a un objeto GasStationWorkerRequest
+        @PostMapping("/{idGasolinera}/trabajadores")
+        public ResponseEntity<?> addWorkerWithImage(
+                        @RequestParam("identification") String identification,
+                        @RequestParam("name") String name,
+                        @RequestParam("phone") String phone,
+                        @RequestParam("image") MultipartFile image, @PathVariable Long idGasolinera,
+                        Principal principal) throws IOException {
 
-        GasStationWorkerRequest gasStationWorker = new GasStationWorkerRequest(
-                identification,
-                name, phone);
+                System.out.println("Entro al controlador POSTMAPINNG");
 
-        GasStationWorkerResponse worker = gasStationWorkerService.addWorkerWithImage(gasStationWorker, idGasolinera, image);
-        GlobalSuccessResponse<?> response;
+                Long authenticatedOwnerId = ownerRepository.getOwnerIdByEmail(principal.getName());
 
-        response = new GlobalSuccessResponse<>(
-                true,
-                "Trabajador creado correctamente",
-                worker);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+                // Verificar si el usuario es ADMIN o el propietario de la gasolinera
+                boolean isAdmin = principal.getName().equals("jgasparlopez29@gmail.com");
+                if (!isAdmin) {
+                        // Verificar si el OWNER está intentando acceder a una gasolinera que le
+                        // pertenece
+                        GasStation gasStation = gasStationRepository.findById(idGasolinera)
+                                        .orElse(null);
 
-    }
+                        if (gasStation == null || !gasStation.getOwner().getId().equals(authenticatedOwnerId)) {
+                                return new ResponseEntity<>(
+                                                new GlobalErrorResponse(false,
+                                                                "No tienes permiso para asignar trabajadores a esta gasolinera"),
+                                                HttpStatus.FORBIDDEN);
+                        }
+                }
 
-    @PutMapping("/{idGasolinera}/trabajadores/{idTrabajador}")
-    public ResponseEntity<?> editWorkerWithImage(
-            //@RequestParam("idGasStationWorker") Long idGasStationWorker,
-            @RequestParam("identification") String identification,
-            @RequestParam("name") String name,
-            @RequestParam("phone") String phone,
-            //@RequestParam("imageUrl") String imageUrl,
-            //@RequestParam("idGasStation") Long idGasStation,
-            @RequestParam("image") MultipartFile image, @PathVariable Long idGasolinera, @PathVariable Long idTrabajador, Principal principal) throws IOException {
+                // Convertir el JSON a un objeto GasStationWorkerRequest
 
-        System.out.println("Entro al controlador PUTMAPPING");
+                @SuppressWarnings("rawtypes")
+                GasStationWorkerRequest gasStationWorker = new GasStationWorkerRequest(
+                                identification,
+                                name, phone);
 
-        System.out.println("Entro al controlador POSTMAPINNG");
+                GasStationWorkerResponse worker = gasStationWorkerService.addWorkerWithImage(gasStationWorker,
+                                idGasolinera, image);
+                GlobalSuccessResponse<?> response;
 
-        Long authenticatedOwnerId = ownerRepository.getOwnerIdByEmail(principal.getName());
+                response = new GlobalSuccessResponse<>(
+                                true,
+                                "Trabajador creado correctamente",
+                                worker);
+                return new ResponseEntity<>(response, HttpStatus.OK);
 
-        // Verificar si el usuario es ADMIN o el propietario de la gasolinera
-        boolean isAdmin = principal.getName().equals("jgasparlopez29@gmail.com");
-        if (!isAdmin) {
-            // Verificar si el OWNER está intentando acceder a una gasolinera que le pertenece
-            GasStation gasStation = gasStationRepository.findById(idGasolinera)
-                    .orElse(null);
-
-            if (gasStation == null || !gasStation.getOwner().getId().equals(authenticatedOwnerId)) {
-                return new ResponseEntity<>(
-                        new GlobalErrorResponse(false, "No tienes permiso para editar trabajadores de esta gasolinera"),
-                        HttpStatus.FORBIDDEN
-                );
-            }
         }
 
-        // Convertir el JSON a un objeto GasStationWorkerRequest
+        @PutMapping("/{idGasolinera}/trabajadores/{idTrabajador}")
+        public ResponseEntity<?> editWorkerWithImage(
+                        // @RequestParam("idGasStationWorker") Long idGasStationWorker,
+                        @RequestParam("identification") String identification,
+                        @RequestParam("name") String name,
+                        @RequestParam("phone") String phone,
+                        // @RequestParam("imageUrl") String imageUrl,
+                        // @RequestParam("idGasStation") Long idGasStation,
+                        @RequestParam("image") MultipartFile image, @PathVariable Long idGasolinera,
+                        @PathVariable Long idTrabajador, Principal principal) throws IOException {
 
-        GasStationWorkerRequest gasStationWorker = new GasStationWorkerRequest(
-                identification,
-                name, phone);
+                System.out.println("Entro al controlador PUTMAPPING");
 
-        GasStationWorkerResponse worker = gasStationWorkerService.updateGasStationWorkerWithImage(gasStationWorker,
-                image, idGasolinera, idTrabajador);
-        GlobalSuccessResponse<?> response;
+                System.out.println("Entro al controlador POSTMAPINNG");
 
-        response = new GlobalSuccessResponse<>(
-                true,
-                "Trabajador editado correctamente",
-                worker);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+                Long authenticatedOwnerId = ownerRepository.getOwnerIdByEmail(principal.getName());
 
-    }
+                // Verificar si el usuario es ADMIN o el propietario de la gasolinera
+                boolean isAdmin = principal.getName().equals("jgasparlopez29@gmail.com");
+                if (!isAdmin) {
+                        // Verificar si el OWNER está intentando acceder a una gasolinera que le
+                        // pertenece
+                        GasStation gasStation = gasStationRepository.findById(idGasolinera)
+                                        .orElse(null);
+
+                        if (gasStation == null || !gasStation.getOwner().getId().equals(authenticatedOwnerId)) {
+                                return new ResponseEntity<>(
+                                                new GlobalErrorResponse(false,
+                                                                "No tienes permiso para editar trabajadores de esta gasolinera"),
+                                                HttpStatus.FORBIDDEN);
+                        }
+                }
+
+                // Convertir el JSON a un objeto GasStationWorkerRequest
+
+                @SuppressWarnings("rawtypes")
+                GasStationWorkerRequest gasStationWorker = new GasStationWorkerRequest(
+                                identification,
+                                name, phone);
+
+                GasStationWorkerResponse worker = gasStationWorkerService.updateGasStationWorkerWithImage(
+                                gasStationWorker,
+                                image, idGasolinera, idTrabajador);
+                GlobalSuccessResponse<?> response;
+
+                response = new GlobalSuccessResponse<>(
+                                true,
+                                "Trabajador editado correctamente",
+                                worker);
+                return new ResponseEntity<>(response, HttpStatus.OK);
+
+        }
 
 }

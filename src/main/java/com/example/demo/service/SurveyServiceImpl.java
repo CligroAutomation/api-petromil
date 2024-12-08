@@ -9,7 +9,6 @@ import com.example.demo.domain.Survey;
 import com.example.demo.domain.dto.SurveyGasStationResponse;
 import com.example.demo.domain.dto.SurveyGasStationWorkerResponse;
 import com.example.demo.domain.dto.SurveyRequest;
-import com.example.demo.enums.Rating;
 import com.example.demo.enums.State;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,37 +29,37 @@ public class SurveyServiceImpl {
     @Autowired
     private GasStationWorkerRepository gasStationWorkerRepository;
 
-    public SurveyRequest createSurvey(SurveyRequest surveyRequest){
+    public SurveyRequest createSurvey(SurveyRequest surveyRequest) {
 
-        System.out.println("Gas"+surveyRequest.idGasStation() + "Worker: "
-                +surveyRequest.idGasStationWorker());
+        System.out.println("Gas" + surveyRequest.idGasStation() + "Worker: "
+                + surveyRequest.idGasStationWorker());
 
-        if(surveyRequest.idGasStation() == null || surveyRequest.idGasStationWorker() == null){
+        if (surveyRequest.idGasStation() == null || surveyRequest.idGasStationWorker() == null) {
             throw new RuntimeException("las ids no pueden ser nulas");
 
         }
 
         Optional<GasStation> gasStationOptional = gasStationRepository.findById(surveyRequest.idGasStation());
-        Optional<GasStationWorker> gasStationWorkerOptional = gasStationWorkerRepository.findById(surveyRequest.idGasStationWorker());
+        Optional<GasStationWorker> gasStationWorkerOptional = gasStationWorkerRepository
+                .findById(surveyRequest.idGasStationWorker());
 
-        if(!gasStationOptional.isPresent()){
+        if (!gasStationOptional.isPresent()) {
             throw new RuntimeException("La gasolinera no existe");
         }
         GasStation gs = gasStationOptional.get();
 
-        if(!gasStationWorkerOptional.isPresent()){
+        if (!gasStationWorkerOptional.isPresent()) {
             throw new RuntimeException("El trabajador no existe");
 
         }
 
         GasStationWorker gsw = gasStationWorkerOptional.get();
 
-        if(gsw.getGasStation().getId() != gs.getId()){
-            throw new RuntimeException("El trabajador al cual le quieres hacer la encuesta, no está asociado a la gasolinería descrita");
-
+        if (gsw.getGasStation().getId() != gs.getId()) {
+            throw new RuntimeException(
+                    "El trabajador al cual le quieres hacer la encuesta, no está asociado a la gasolinería descrita");
 
         }
-
 
         Survey survey = new Survey();
         survey.setGasStationWorker(gsw);
@@ -73,29 +72,27 @@ public class SurveyServiceImpl {
 
     }
 
-
-    public SurveyGasStationWorkerResponse getSurveyByIdGasStationWorker(Long idGasStationWorker){
+    public SurveyGasStationWorkerResponse getSurveyByIdGasStationWorker(Long idGasStationWorker) {
 
         Optional<GasStationWorker> gasStationWorkerOptional = gasStationWorkerRepository.findById(idGasStationWorker);
-        if(gasStationWorkerOptional.isPresent()){
-             GasStationWorker gasStationWorker = gasStationWorkerOptional.get();
+        if (gasStationWorkerOptional.isPresent()) {
+            GasStationWorker gasStationWorker = gasStationWorkerOptional.get();
 
-             List<Survey> surveyList = surveyRepository.findByGasStationWorker(gasStationWorker);
+            List<Survey> surveyList = surveyRepository.findByGasStationWorker(gasStationWorker);
 
-             if(gasStationWorker.getState() == State.INACTIVE){
-                 throw new RuntimeException("Este trabajador está inactiva");
+            if (gasStationWorker.getState() == State.INACTIVE) {
+                throw new RuntimeException("Este trabajador está inactiva");
 
-             }
+            }
 
-             if(surveyList.isEmpty()){
-                 throw new RuntimeException("Este trabajador no tiene  encuestas");
+            if (surveyList.isEmpty()) {
+                throw new RuntimeException("Este trabajador no tiene  encuestas");
 
-             }
+            }
 
             SurveyGasStationWorkerResponse.WorkerDTO workerDTO = new SurveyGasStationWorkerResponse.WorkerDTO(
                     gasStationWorker.getId(),
-                    gasStationWorker.getName()
-            );
+                    gasStationWorker.getName());
 
             List<SurveyGasStationWorkerResponse.SurveyDTO> surveyDTO = gasStationWorker.getSurveys()
                     .stream()
@@ -103,8 +100,7 @@ public class SurveyServiceImpl {
                             survey.getId(),
                             survey.getRating(),
                             survey.getComment(),
-                            survey.getDateTime()
-                    ))
+                            survey.getDateTime()))
                     .collect(Collectors.toList());
 
             return new SurveyGasStationWorkerResponse(workerDTO, surveyDTO);
@@ -113,32 +109,30 @@ public class SurveyServiceImpl {
 
         throw new RuntimeException("Este trabajador no existe");
 
-
     }
 
-    public SurveyGasStationResponse getSurveyByIdGasStation(Long idGasStation){
+    public SurveyGasStationResponse getSurveyByIdGasStation(Long idGasStation) {
 
         Optional<GasStation> gasStationWorkerOptional = gasStationRepository.findById(idGasStation);
-        if(gasStationWorkerOptional.isPresent()){
+        if (gasStationWorkerOptional.isPresent()) {
 
             GasStation gasStation = gasStationWorkerOptional.get();
 
-            if(gasStation.getState() == State.INACTIVE){
+            if (gasStation.getState() == State.INACTIVE) {
                 throw new RuntimeException("Este gasolinera está inactiva");
 
             }
 
             List<Survey> surveyList = surveyRepository.findByGasStation(gasStation);
 
-            if(surveyList.isEmpty()){
+            if (surveyList.isEmpty()) {
                 throw new RuntimeException("Este gasolinera no tiene  encuestas");
 
             }
 
             SurveyGasStationResponse.GasStationDTO GasStationDTO = new SurveyGasStationResponse.GasStationDTO(
                     gasStation.getId(),
-                    gasStation.getName()
-            );
+                    gasStation.getName());
 
             List<SurveyGasStationResponse.SurveyDTO> surveyDTO = gasStation.getSurveys()
                     .stream()
@@ -146,8 +140,7 @@ public class SurveyServiceImpl {
                             survey.getId(),
                             survey.getRating(),
                             survey.getComment(),
-                            survey.getDateTime()
-                    ))
+                            survey.getDateTime()))
                     .collect(Collectors.toList());
 
             return new SurveyGasStationResponse(GasStationDTO, surveyDTO);
@@ -156,15 +149,6 @@ public class SurveyServiceImpl {
 
         throw new RuntimeException("Esta gasolinera no existe");
 
-
     }
-
-
-
-
-
-
-
-
 
 }

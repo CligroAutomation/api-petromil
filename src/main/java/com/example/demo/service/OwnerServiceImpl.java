@@ -1,4 +1,5 @@
 package com.example.demo.service;
+
 import com.example.demo.dao.OwnerRepository;
 import com.example.demo.dao.PermissionRepository;
 import com.example.demo.dao.RoleRepository;
@@ -12,25 +13,19 @@ import com.example.demo.domain.dto.OwnerResponse;
 import com.example.demo.enums.RoleEnum;
 import com.example.demo.enums.State;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
-
 @Service
-public class OwnerServiceImpl{
+public class OwnerServiceImpl {
 
     @Autowired
     private OwnerRepository ownerRepository;
 
     @Autowired
     private UserRepository userRepository;
-
-    @Autowired
-    private UserDetailsServiceImpl userDetailsService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -41,18 +36,17 @@ public class OwnerServiceImpl{
     @Autowired
     private RoleRepository roleRepository;
 
-
     public OwnerResponse createOwner(OwnerResponse ownerResponse) {
         // Verificar si el usuario ya existe
 
-        Optional<UserEntity> existingUserByIdentification = userRepository.findUserEntityByIdentification(ownerResponse.identification());
+        Optional<UserEntity> existingUserByIdentification = userRepository
+                .findUserEntityByIdentification(ownerResponse.identification());
 
         if (existingUserByIdentification.isPresent()) {
 
             throw new RuntimeException("No puedes agregar dos usuarios con la misma cedula");
 
         }
-
 
         Optional<UserEntity> existingUser = userRepository.findUserEntityByEmail(ownerResponse.email());
 
@@ -90,7 +84,7 @@ public class OwnerServiceImpl{
                 // Crear un HashSet mutable de roles
                 Set<Role> roles = new HashSet<>();
                 roles.add(adminRole);
-                user.setRoles(roles);  // Asociar el rol ADMIN al usuario
+                user.setRoles(roles); // Asociar el rol ADMIN al usuario
 
                 // Actualizar el propietario asociado al usuario
                 Owner owner = user.getOwner();
@@ -98,7 +92,7 @@ public class OwnerServiceImpl{
                 owner.setName(ownerResponse.name());
                 owner.setPhone(ownerResponse.phone());
 
-                userRepository.save(user);  // Guardar el usuario con sus cambios
+                userRepository.save(user); // Guardar el usuario con sus cambios
 
                 return new OwnerResponse(
                         owner.getId(),
@@ -106,14 +100,9 @@ public class OwnerServiceImpl{
                         owner.getName(),
                         owner.getPhone(),
                         owner.getUser().getEmail(),
-                        owner.getUser().getPassword()
-                );
+                        owner.getUser().getPassword());
             }
         }
-
-
-
-
 
         // Si el usuario no existe, crear uno nuevo
         UserEntity newUser = new UserEntity();
@@ -164,18 +153,15 @@ public class OwnerServiceImpl{
                 owner.getName(),
                 owner.getPhone(),
                 owner.getUser().getEmail(),
-                owner.getUser().getPassword()
-        );
-
+                owner.getUser().getPassword());
 
     }
-
 
     public OwnerResponse getOwner(Long id) {
 
         System.out.println("Entro al getOwner");
 
-        //Optional<UserEntity> existingUser = userRepository.findUserEntityById(id);
+        // Optional<UserEntity> existingUser = userRepository.findUserEntityById(id);
 
         Optional<Owner> o = ownerRepository.findById(id);
 
@@ -183,67 +169,59 @@ public class OwnerServiceImpl{
 
             Owner own = o.get();
 
-            if(own.getUser().getState() == State.INACTIVE){
+            if (own.getUser().getState() == State.INACTIVE) {
                 throw new RuntimeException("propietario con estado inactivo");
 
             }
 
-                // Asignamos los datos de Owner solo si user.getOwner() no es null
-                OwnerResponse owr = new OwnerResponse(
-                        own.getId(),
-                        own.getUser().getIdentification(),
-                        own.getName(),
-                        own.getPhone(),
-                        own.getUser().getEmail(),
-                        own.getUser().getPassword()
+            // Asignamos los datos de Owner solo si user.getOwner() no es null
+            OwnerResponse owr = new OwnerResponse(
+                    own.getId(),
+                    own.getUser().getIdentification(),
+                    own.getName(),
+                    own.getPhone(),
+                    own.getUser().getEmail(),
+                    own.getUser().getPassword()
 
-                );
-                return owr; // Retornamos el objeto OwnerResponse
+            );
+            return owr; // Retornamos el objeto OwnerResponse
 
         }
-            // El usuario no fue encontrado
-            throw new RuntimeException("propietario no encontrado");
-
+        // El usuario no fue encontrado
+        throw new RuntimeException("propietario no encontrado");
 
         // Retorna null si no se encuentra un owner o no es admin
     }
 
-
-
     public OwnerResponse updateOwner(Long idPropietario, OwnerResponse ownerResponse) {
 
-
-        if(idPropietario == null){
+        if (idPropietario == null) {
             throw new RuntimeException("Id del propietario no puede ser nula");
-
 
         }
 
-
         Optional<Owner> owner = ownerRepository.findById(idPropietario);
 
-        if(!owner.isPresent()){
+        if (!owner.isPresent()) {
             System.out.println("Este propietario no existe");
             throw new RuntimeException("Este propietario no existe");
 
         }
         Owner own = owner.get();
 
-
-        if(own.getUser().getState() == State.INACTIVE){
+        if (own.getUser().getState() == State.INACTIVE) {
             throw new RuntimeException("El propietario el cual intentas editar, está inactivo");
 
         }
 
-
-        if(own.getUser().getEmail() != ownerResponse.email()){
+        if (own.getUser().getEmail() != ownerResponse.email()) {
             System.out.println("email diferente");
 
             own.setUser(own.getUser());
             own.setName(ownerResponse.name());
             own.setPhone(ownerResponse.phone());
             own.getUser().setIdentification(ownerResponse.identification());
-            //Seteando la nueva contraseña
+            // Seteando la nueva contraseña
             own.getUser().setPassword(passwordEncoder.encode(ownerResponse.password()));
             own.getUser().setEmail(ownerResponse.email());
             ownerRepository.save(own);
@@ -254,36 +232,31 @@ public class OwnerServiceImpl{
         own.setName(ownerResponse.name());
         own.setPhone(ownerResponse.phone());
         own.getUser().setIdentification(ownerResponse.identification());
-        //Seteando la nueva contraseña
+        // Seteando la nueva contraseña
         own.getUser().setPassword(passwordEncoder.encode(ownerResponse.password()));
         ownerRepository.save(own);
 
-
         return new OwnerResponse(
-                        own.getId(),
-                        own.getUser().getIdentification(),
-                        own.getName(),
-                        own.getPhone(),
-                        own.getUser().getEmail(),
-                        own.getUser().getPassword()
-                );
+                own.getId(),
+                own.getUser().getIdentification(),
+                own.getName(),
+                own.getPhone(),
+                own.getUser().getEmail(),
+                own.getUser().getPassword());
 
     }
 
-    public OwnerResponse deleteOwner(Long id){
-
+    public OwnerResponse deleteOwner(Long id) {
 
         Optional<Owner> owner = ownerRepository.findById(id);
 
-
-        if(!owner.isPresent()){
+        if (!owner.isPresent()) {
             throw new RuntimeException("El propietario el cual intentas eliminar no existe");
-
 
         }
         Owner own = owner.get();
 
-        if(own.getUser().getState() == State.INACTIVE){
+        if (own.getUser().getState() == State.INACTIVE) {
             throw new RuntimeException("El propietario el cual intentas eliminar no existe || ya está inactivo");
         }
 
@@ -291,14 +264,14 @@ public class OwnerServiceImpl{
 
         user.setState(State.INACTIVE);
         userRepository.save(user);
-        OwnerResponse or = new OwnerResponse(user.getOwner().getId(), user.getIdentification(), user.getOwner().getName(), user.getOwner().getPhone(), user.getEmail(), user.getPassword());
+        OwnerResponse or = new OwnerResponse(user.getOwner().getId(), user.getIdentification(),
+                user.getOwner().getName(), user.getOwner().getPhone(), user.getEmail(), user.getPassword());
 
         return or;
 
     }
 
-
-    public List<Owner> getAllOwnerByUserState(){
+    public List<Owner> getAllOwnerByUserState() {
 
         List<Owner> owners = ownerRepository.findByUserState(State.ACTIVE);
 
@@ -309,8 +282,5 @@ public class OwnerServiceImpl{
         return owners;
 
     }
-
-
-
 
 }

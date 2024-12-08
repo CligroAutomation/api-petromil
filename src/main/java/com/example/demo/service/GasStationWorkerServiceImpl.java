@@ -1,15 +1,12 @@
 package com.example.demo.service;
 
-
 import com.example.demo.dao.GasStationRepository;
 import com.example.demo.dao.GasStationWorkerRepository;
 import com.example.demo.domain.GasStation;
 import com.example.demo.domain.GasStationWorker;
 import com.example.demo.domain.dto.GasStationWorkerRequest;
 import com.example.demo.domain.dto.GasStationWorkerResponse;
-import com.example.demo.domain.dto.GasStationWorkerResponseImg;
 import com.example.demo.enums.State;
-import org.hibernate.StaleObjectStateException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +18,6 @@ import java.util.Optional;
 @Service
 public class GasStationWorkerServiceImpl {
 
-
     @Autowired
     private GasStationWorkerRepository gasStationWorkerRepository;
 
@@ -31,10 +27,8 @@ public class GasStationWorkerServiceImpl {
     @Autowired
     private CloudinaryService cloudinaryService;
 
-
     @Transactional
     public GasStationWorkerResponse addGasStationWorker(GasStationWorker worker) {
-
 
         if (worker == null) {
             System.out.println("el trabajador no puede ser null");
@@ -52,14 +46,16 @@ public class GasStationWorkerServiceImpl {
         GasStation gasStation = optionalGasStation.get();
 
         // Verificar si el trabajador ya existe en la base de datos con estado ACTIVE
-        Optional<GasStationWorker> existingWorker = gasStationWorkerRepository.findByIdentification(worker.getIdentification());
+        Optional<GasStationWorker> existingWorker = gasStationWorkerRepository
+                .findByIdentification(worker.getIdentification());
         if (existingWorker.isPresent() && existingWorker.get().getState() == State.ACTIVE) {
 
             System.out.println("IllegalStateException(El trabajador ya existe y está activo.");
             return null;
         }
 
-        // Verificar si el trabajador ya existe en la lista de trabajadores de la gasolinera
+        // Verificar si el trabajador ya existe en la lista de trabajadores de la
+        // gasolinera
         Optional<GasStationWorker> existingInStation = gasStation.getWorkers().stream()
                 .filter(w -> w.getIdentification().equals(worker.getIdentification()))
                 .findFirst();
@@ -77,7 +73,6 @@ public class GasStationWorkerServiceImpl {
                 existingWorkerInStation.setName(worker.getName());
                 existingWorkerInStation.setPhone(worker.getPhone());
                 existingWorkerInStation.setImage(worker.getImage());
-
 
                 // Guardar el trabajador actualizado
                 gasStationWorkerRepository.save(existingWorkerInStation);
@@ -110,7 +105,6 @@ public class GasStationWorkerServiceImpl {
         if (identification == null) {
             throw new RuntimeException("Identification no pueden ser nulos");
 
-
         }
 
         Optional<GasStationWorker> gasStationWorker = gasStationWorkerRepository.findByIdentification(identification);
@@ -121,11 +115,11 @@ public class GasStationWorkerServiceImpl {
 
             if (gsw.getState() == State.ACTIVE) {
 
-                GasStationWorkerResponse responsef = new GasStationWorkerResponse(gsw.getId(), gsw.getIdentification(), gsw.getName(), gsw.getPhone(), gsw.getImage(), gsw.getGasStation().getName());
+                GasStationWorkerResponse responsef = new GasStationWorkerResponse(gsw.getId(), gsw.getIdentification(),
+                        gsw.getName(), gsw.getPhone(), gsw.getImage(), gsw.getGasStation().getName());
 
                 return responsef;
             }
-
 
         }
 
@@ -146,11 +140,11 @@ public class GasStationWorkerServiceImpl {
         }
 
         // Obtiene los trabajadores activos de la gasolinera
-        List<GasStationWorkerResponse> workers = gasStationWorkerRepository.findWorkersByGasStationIdAndState(gasStationId, State.ACTIVE);
+        List<GasStationWorkerResponse> workers = gasStationWorkerRepository
+                .findWorkersByGasStationIdAndState(gasStationId, State.ACTIVE);
 
         if (workers.isEmpty()) {
             throw new RuntimeException("No hay trabajadores en esta gasolinera");
-
 
             // Retorna la lista (puede estar vacía)
 
@@ -160,62 +154,67 @@ public class GasStationWorkerServiceImpl {
 
     }
 
-//    public GasStationWorkerResponse updateGasStationWorker(GasStationWorkerRequest gasStationWorkerRequest) {
-//
-//
-//        if (gasStationWorkerRequest.idGasStationWorker() == null || gasStationWorkerRequest.idGasStation() == null) {
-//            System.out.println("Las ids del worker y de la estación no pueden ser nulas ");
-//        }
-//
-//        Optional<GasStationWorker> worker = gasStationWorkerRepository.findByIdentification(gasStationWorkerRequest.identification());
-//        Object idGasStation = gasStationWorkerRequest.idGasStation();
-//        Long idGas;
-//
-//        if (idGasStation instanceof Long) {
-//            idGas = (Long) idGasStation;
-//        } else if (idGasStation instanceof Integer) {
-//            idGas = ((Integer) idGasStation).longValue(); // Convertir Integer a Long
-//        } else {
-//            throw new IllegalArgumentException("El tipo de idGasStation no es compatible: " + idGasStation.getClass());
-//        }
-//        Optional<GasStation> gs = gasStationRepository.findById(idGas);
-//
-//        if (worker.isPresent() && gs.isPresent()) {
-//
-//            GasStationWorker w = worker.get();
-//            GasStation gas = gs.get();
-//
-//            if (w.getState() == State.ACTIVE) {
-//
-//                w.setId(gasStationWorkerRequest.idGasStationWorker());
-//                w.setName(gasStationWorkerRequest.name());
-//                w.setIdentification(gasStationWorkerRequest.identification());
-//                w.setPhone(gasStationWorkerRequest.phone());
-//                w.setGasStation(gas);
-//                gasStationWorkerRepository.save(w);
-//                gasStationRepository.save(gas);
-//
-//                return new GasStationWorkerResponse(w.getId(), w.getIdentification(), w.getName(), w.getPhone(), w.getImage(), gas.getName());
-//
-//            }
-//
-//            System.out.println("Trabajador inactivo ");
-//            return null;
-//
-//        }
-//
-//        System.out.println("Este worker no existe o no hay gasStation ");
-//        return null;
-//
-//    }
+    // public GasStationWorkerResponse
+    // updateGasStationWorker(GasStationWorkerRequest gasStationWorkerRequest) {
+    //
+    //
+    // if (gasStationWorkerRequest.idGasStationWorker() == null ||
+    // gasStationWorkerRequest.idGasStation() == null) {
+    // System.out.println("Las ids del worker y de la estación no pueden ser nulas
+    // ");
+    // }
+    //
+    // Optional<GasStationWorker> worker =
+    // gasStationWorkerRepository.findByIdentification(gasStationWorkerRequest.identification());
+    // Object idGasStation = gasStationWorkerRequest.idGasStation();
+    // Long idGas;
+    //
+    // if (idGasStation instanceof Long) {
+    // idGas = (Long) idGasStation;
+    // } else if (idGasStation instanceof Integer) {
+    // idGas = ((Integer) idGasStation).longValue(); // Convertir Integer a Long
+    // } else {
+    // throw new IllegalArgumentException("El tipo de idGasStation no es compatible:
+    // " + idGasStation.getClass());
+    // }
+    // Optional<GasStation> gs = gasStationRepository.findById(idGas);
+    //
+    // if (worker.isPresent() && gs.isPresent()) {
+    //
+    // GasStationWorker w = worker.get();
+    // GasStation gas = gs.get();
+    //
+    // if (w.getState() == State.ACTIVE) {
+    //
+    // w.setId(gasStationWorkerRequest.idGasStationWorker());
+    // w.setName(gasStationWorkerRequest.name());
+    // w.setIdentification(gasStationWorkerRequest.identification());
+    // w.setPhone(gasStationWorkerRequest.phone());
+    // w.setGasStation(gas);
+    // gasStationWorkerRepository.save(w);
+    // gasStationRepository.save(gas);
+    //
+    // return new GasStationWorkerResponse(w.getId(), w.getIdentification(),
+    // w.getName(), w.getPhone(), w.getImage(), gas.getName());
+    //
+    // }
+    //
+    // System.out.println("Trabajador inactivo ");
+    // return null;
+    //
+    // }
+    //
+    // System.out.println("Este worker no existe o no hay gasStation ");
+    // return null;
+    //
+    // }
 
     public GasStationWorkerResponse deleteGasStationWorkerById(Long idGasolinera, Long idTrabajador) {
 
         Optional<GasStationWorker> worker = gasStationWorkerRepository.findById(idTrabajador);
         Optional<GasStation> gas = gasStationRepository.findById(idGasolinera);
 
-
-        if (worker.isPresent() &&  gas.isPresent()) {
+        if (worker.isPresent() && gas.isPresent()) {
 
             GasStationWorker gsw = worker.get();
 
@@ -231,11 +230,11 @@ public class GasStationWorkerServiceImpl {
 
         throw new RuntimeException("No existe un trabajador con esta ID");
 
-
-
     }
 
-    public GasStationWorkerResponse addWorkerWithImage(GasStationWorkerRequest gasStationWorkerRequest, Long idGasolinera, MultipartFile image) throws IOException {
+    public GasStationWorkerResponse addWorkerWithImage(
+            @SuppressWarnings("rawtypes") GasStationWorkerRequest gasStationWorkerRequest,
+            Long idGasolinera, MultipartFile image) throws IOException {
 
         // Validar datos de entrada
         if (gasStationWorkerRequest == null || idGasolinera == null) {
@@ -254,11 +253,11 @@ public class GasStationWorkerServiceImpl {
 
         }
 
-
         GasStation gasStation = optionalGasStation.get();
 
         // Verificar si el trabajador ya existe con estado ACTIVE
-        Optional<GasStationWorker> existingWorker = gasStationWorkerRepository.findByIdentification(gasStationWorkerRequest.identification());
+        Optional<GasStationWorker> existingWorker = gasStationWorkerRepository
+                .findByIdentification(gasStationWorkerRequest.identification());
         if (existingWorker.isPresent() && existingWorker.get().getState() == State.ACTIVE) {
             throw new RuntimeException("El trabajador ya existe y está activo.");
 
@@ -295,18 +294,14 @@ public class GasStationWorkerServiceImpl {
                 gasStationWorkerRequest.phone(),
                 imageUrl,
                 State.ACTIVE,
-                gasStation
-        );
+                gasStation);
 
         return saveAndConvertResponse(newWorker);
     }
 
-
-
-
-    public GasStationWorkerResponse updateGasStationWorkerWithImage(GasStationWorkerRequest gasStationWorkerRequest, MultipartFile image, Long idGasolinera, Long idTrabajador) throws IOException {
-
-
+    public GasStationWorkerResponse updateGasStationWorkerWithImage(
+            @SuppressWarnings("rawtypes") GasStationWorkerRequest gasStationWorkerRequest,
+            MultipartFile image, Long idGasolinera, Long idTrabajador) throws IOException {
 
         if (idGasolinera == null || idTrabajador == null) {
             throw new RuntimeException("Las ids del worker y de la estación no pueden ser nulas ");
@@ -352,7 +347,8 @@ public class GasStationWorkerServiceImpl {
                 w.setImage(cloudinaryService.uploadImage(image));
                 gasStationWorkerRepository.save(w);
                 gasStationRepository.save(gas);
-                return new GasStationWorkerResponse(w.getId(), w.getIdentification(), w.getName(), w.getPhone(), w.getImage(), gas.getName());
+                return new GasStationWorkerResponse(w.getId(), w.getIdentification(), w.getName(), w.getPhone(),
+                        w.getImage(), gas.getName());
             }
 
             throw new RuntimeException("Trabajador inactivo");
@@ -370,15 +366,7 @@ public class GasStationWorkerServiceImpl {
                 savedWorker.getName(),
                 savedWorker.getPhone(),
                 savedWorker.getImage(),
-                savedWorker.getGasStation().getName()
-        );
+                savedWorker.getGasStation().getName());
     }
 
-
-
-
 }
-
-
-
-

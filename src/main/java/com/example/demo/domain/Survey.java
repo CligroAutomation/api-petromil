@@ -1,7 +1,6 @@
 package com.example.demo.domain;
 
 import com.example.demo.enums.Rating;
-import com.example.demo.enums.RoleEnum;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -37,10 +36,8 @@ public class Survey {
     @Column(nullable = false)
     private LocalDateTime dateTime;
 
-    public Survey(){
+    public Survey() {
         this.dateTime = LocalDateTime.now();
     }
-
-
 
 }

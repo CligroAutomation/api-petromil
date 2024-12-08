@@ -1,6 +1,5 @@
 package com.example.demo.domain;
 
-
 import com.example.demo.enums.State;
 import jakarta.persistence.*;
 import lombok.*;
@@ -34,7 +33,6 @@ public class GasStation {
 
     @Column(name = "state")
     private State state;
-
 
     @OneToMany(mappedBy = "gasStation", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<GasStationWorker> workers = new ArrayList<>();

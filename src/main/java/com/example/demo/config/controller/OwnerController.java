@@ -3,7 +3,6 @@ package com.example.demo.config.controller;
 import com.example.demo.dao.OwnerRepository;
 import com.example.demo.dao.UserRepository;
 import com.example.demo.domain.Owner;
-import com.example.demo.domain.dto.GlobalErrorResponse;
 import com.example.demo.domain.dto.GlobalSuccessResponse;
 import com.example.demo.domain.dto.OwnerResponse;
 import com.example.demo.service.OwnerServiceImpl;
@@ -49,31 +48,27 @@ public class OwnerController {
         @GetMapping("/{idPropietario}")
         public ResponseEntity<?> getOwner(@PathVariable Long idPropietario) {
 
-
                 System.out.println("Entro al controlador GET BY ID OWNER");
                 GlobalSuccessResponse<?> response;
                 OwnerResponse o = this.ownerService.getOwner(idPropietario);
 
-                        // Respuesta en caso de éxito
+                // Respuesta en caso de éxito
                 response = new GlobalSuccessResponse<>(
                                 true,
                                 "Dueño obtenido correctamente",
                                 o);
                 return new ResponseEntity<>(response, HttpStatus.OK);
 
-
-
-
         }
 
         @PutMapping("/{idPropietario}")
-        public ResponseEntity<?> updateOwner(@PathVariable Long idPropietario, @RequestBody OwnerResponse ownerResponse) {
+        public ResponseEntity<?> updateOwner(@PathVariable Long idPropietario,
+                        @RequestBody OwnerResponse ownerResponse) {
 
                 System.out.println("ENTRO AL PUTMMAPING");
 
-                OwnerResponse o = this.ownerService.updateOwner(idPropietario,ownerResponse);
+                OwnerResponse o = this.ownerService.updateOwner(idPropietario, ownerResponse);
                 GlobalSuccessResponse<?> response;
-
 
                 // Respuesta en caso de éxito
                 response = new GlobalSuccessResponse<>(
@@ -90,9 +85,7 @@ public class OwnerController {
                 System.out.println("ENTRO AL DELETEmAPPING");
                 GlobalSuccessResponse<?> response;
 
-
                 OwnerResponse owner = this.ownerService.deleteOwner(idPropietario);
-
 
                 // Respuesta en caso de éxito
                 response = new GlobalSuccessResponse<>(
@@ -109,7 +102,6 @@ public class OwnerController {
                 // Asegúrate de que getAllOwnerByUserState nunca devuelva null
                 List<Owner> owners = ownerService.getAllOwnerByUserState();
                 GlobalSuccessResponse<?> response;
-
 
                 // Transformar los objetos Owner a OwnerResponse
                 List<OwnerResponse> ownersResponse = owners.stream()

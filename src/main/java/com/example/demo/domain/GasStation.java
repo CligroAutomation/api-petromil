@@ -39,6 +39,9 @@ public class GasStation {
     @OneToMany(mappedBy = "gasStation", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<GasStationWorker> workers = new ArrayList<>();
 
+    @OneToMany(mappedBy = "gasStation", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Survey> surveys = new ArrayList<>();
+
     // Constructor personalizado
     public GasStation(Long id, String name, String address, Owner owner, State state) {
         this.id = id;

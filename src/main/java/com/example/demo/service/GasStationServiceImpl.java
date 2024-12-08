@@ -25,21 +25,23 @@ public class GasStationServiceImpl {
     private OwnerRepository ownerRepository;
 
     @Transactional
-    public GasStationResponse createGasStation(GasStationResponse gasStationResponse) {
+    public GasStationResponse createGasStation(GasStationResponse gasStationResponse, Long idOwner) {
         // Validar que el idOwner no sea nulo
-        if (gasStationResponse.idOwner() == null) {
+        if ( idOwner == null) {
             throw new IllegalArgumentException("El ID del dueño no puede ser null.");
         }
 
         // Buscar al Owner, valido que exista
-        Owner owner = ownerRepository.findById(gasStationResponse.idOwner())
+        Owner owner = ownerRepository.findById(idOwner)
                 .orElse(null);
 
         if (owner == null) {
+            System.out.println("La id del owner no existe, no existe owner con esa id");
             return null;
         }
 
         if(owner.getUser().getState() == State.INACTIVE){
+            System.out.println("La id del owner no existe, no existe owner con esa id");
             return null;
         }
 
@@ -69,7 +71,7 @@ public class GasStationServiceImpl {
                     ownerRepository.save(owner); // Guardar al Owner con la nueva gasolinera
 
                     // Retornar el DTO de GasStation con los datos requeridos
-                    return new GasStationResponse(gs.getId(), gs.getName(), gs.getAddress(), owner.getId());
+                    return new GasStationResponse(gs.getId(), gs.getName(), gs.getAddress());
 
                 }
 
@@ -80,7 +82,20 @@ public class GasStationServiceImpl {
         boolean ownerHasGasStation = gasStationRepository.existsByOwnerAndNameAndAddress(owner, gasStationResponse.name(), gasStationResponse.address());
 
         if (ownerHasGasStation) {
-            return null;
+
+            GasStation gs = gasStationRepository.findByOwnerAndNameAndAddress(owner, gasStationResponse.name(), gasStationResponse.address());
+
+            if(gs.getState() == State.ACTIVE){
+
+                System.out.println("Este dueño ya tiene esta gasolinera asociada");
+                return null;
+            }
+
+            gs.setState(State.ACTIVE);
+            ownerRepository.save(owner); // Guardar al Owner con la nueva gasolinera
+            return new GasStationResponse(gs.getId(), gs.getName(), gs.getAddress());
+
+
         }
 
         // Crear la nueva GasStation y asociarla con el Owner
@@ -98,7 +113,7 @@ public class GasStationServiceImpl {
         ownerRepository.save(owner); // Guardar al Owner con la nueva gasolinera
 
         // Retornar el DTO de GasStation con los datos requeridos
-        return new GasStationResponse(gasStation.getId(), gasStation.getName(), gasStation.getAddress(), owner.getId());
+        return new GasStationResponse(gasStation.getId(), gasStation.getName(), gasStation.getAddress());
     }
 
 
@@ -169,16 +184,23 @@ public class GasStationServiceImpl {
 
     }
 
-    public GasStationsByOwnerResponse updateGasStation(GasStationResponse gasStationResponse){
+    public GasStationsByOwnerResponse updateGasStation(GasStationResponse gasStationResponse, Long idPropietario, Long idGasolinera){
 
         //
-        if(gasStationResponse.idGasStation() == null || gasStationResponse.idOwner() == null){
+        if(idPropietario == null || idGasolinera == null){
+            System.out.println("Las ids no pueden ser nulas");
             return null;
         }
-        Optional<Owner> own = ownerRepository.findById(gasStationResponse.idOwner());
+        Optional<Owner> own = ownerRepository.findById(idPropietario);
 
         //Verificamos si Owner existe
         if(!own.isPresent()){
+            System.out.println("No existe el owner");
+            return null;
+        }
+
+        if(!gasStationRepository.findById(idGasolinera).isPresent()){
+            System.out.println("Esta gasolinera no existe");
             return null;
         }
 
@@ -186,18 +208,32 @@ public class GasStationServiceImpl {
 
         //Verificamos si el owner tiene el estado activo
         if(own2.getUser().getState() == State.INACTIVE){
+            System.out.println("No existe el owner");
+
             return null;
         }
 
-        //Verificamos si el owner ya tiene la nueva gasStation que se guiere editar
+        //Verificamos si el owner ya tiene la gasStation que se guiere editar
         boolean ownerHasGasStation = gasStationRepository.existsByOwnerAndNameAndAddress(own2, gasStationResponse.name(), gasStationResponse.address());
 
         if (ownerHasGasStation) {
-            return null;
+
+            GasStation gs = gasStationRepository.findByOwnerAndNameAndAddress(own2, gasStationResponse.name(), gasStationResponse.address());
+
+            if(gs.getState() == State.INACTIVE){
+
+                System.out.println("Esta gasolinera no existe");
+                return null;
+            }
+
         }
+
+
+
+
         List<GasStation> gasStations = gasStationRepository.findGasStationsByState(State.ACTIVE);
 
-        GasStation gs = new GasStation(gasStationResponse.idGasStation(), gasStationResponse.name(), gasStationResponse.address(), own2, State.ACTIVE);
+        GasStation gs = new GasStation(idGasolinera, gasStationResponse.name(), gasStationResponse.address(), own2, State.ACTIVE);
 
         GasStationsByOwnerResponse response = new GasStationsByOwnerResponse(gs.getId(), gs.getName(), gs.getAddress(), gs.getOwner().getName());
         gasStationRepository.save(gs);
@@ -208,9 +244,15 @@ public class GasStationServiceImpl {
     }
 
 
-    public GasStationsByOwnerResponse deleteGasStation(Long id){
+    public GasStationsByOwnerResponse deleteGasStation(Long idPropietario, Long idGasolinera){
 
-        Optional<GasStation> gasStation = gasStationRepository.findById(id);
+        if(idGasolinera == null | idPropietario == null){
+            System.out.println("Los ids no pueden ser nulos");
+            return null;
+
+        }
+        System.out.println("Id Gasolinera"+ idGasolinera);
+        Optional<GasStation> gasStation = gasStationRepository.findById(idGasolinera);
         if(gasStation.isPresent()){
             GasStation gs = gasStation.get();
             if(gs.getState() == State.ACTIVE){

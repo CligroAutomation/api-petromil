@@ -19,4 +19,7 @@ public interface OwnerRepository extends CrudRepository<Owner, Long> {
     @Query("SELECT COUNT(g) > 0 FROM Owner o JOIN o.gasStations g WHERE o.id = :ownerId AND g.id = :gasStationId")
     boolean existsByGasStationsIdAndId(@Param("gasStationId") Long gasStationId, @Param("ownerId") Long ownerId);
 
+
+
+
 }

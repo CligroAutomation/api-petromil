@@ -22,8 +22,10 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.swing.text.html.Option;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -88,9 +90,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
             // Generar el token de acceso si la autenticación es exitosa
             String accessToken = jwtUtils.createToken(authentication);
+            UserEntity u = userRepository.findUserEntityByEmail(email).get();
+            AuthResponse.UserDTO userDTO = new AuthResponse.UserDTO(u.getId(), u.getEmail());
 
             // Retornar respuesta de autenticación exitosa
-            return new AuthResponse(email, "User logged successfully", accessToken, true);
+            return new AuthResponse( accessToken, userDTO);
         } catch (UsernameNotFoundException | BadCredentialsException ex) {
             // Si el usuario no existe o las credenciales son incorrectas, devolver null
             return null;
@@ -172,7 +176,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         SecurityContext context = SecurityContextHolder.getContext();
         Authentication authentication = new UsernamePasswordAuthenticationToken(userCreated.getEmail(), userCreated.getPassword(), authorityList);
         String accesToken  = jwtUtils.createToken(authentication);
-        AuthResponse authResponse = new AuthResponse(userCreated.getEmail(), "User created successfuly", accesToken, true);
+
+        AuthResponse.UserDTO userDTO = new AuthResponse.UserDTO(userCreated.getId(), userCreated.getEmail());
+
+
+        AuthResponse authResponse = new AuthResponse(accesToken, userDTO);
         return  authResponse;
 
     }

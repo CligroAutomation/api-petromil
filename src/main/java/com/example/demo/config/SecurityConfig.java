@@ -1,7 +1,10 @@
 package com.example.demo.config;
 
 import com.example.demo.Util.JwtUtils;
+import com.example.demo.config.controller.CustomAccessDeniedHandler;
+import com.example.demo.config.controller.CustomAuthenticationEntryPoint;
 import com.example.demo.config.filter.JwtTokenValidator;
+import com.example.demo.enums.RoleEnum;
 import com.example.demo.service.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -29,35 +32,74 @@ public class SecurityConfig {
     @Autowired
     private JwtUtils jwtUtils;
 
+    private final CustomAccessDeniedHandler accessDeniedHandler;
+    private final CustomAuthenticationEntryPoint authenticationEntryPoint;
+
+    public SecurityConfig(CustomAccessDeniedHandler accessDeniedHandler,
+                          CustomAuthenticationEntryPoint authenticationEntryPoint) {
+        this.accessDeniedHandler = accessDeniedHandler;
+        this.authenticationEntryPoint = authenticationEntryPoint;
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
                 .csrf(csrf -> csrf.disable())
                 .httpBasic(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(exception -> {
+                    // Configura los manejadores personalizados
+                    exception.accessDeniedHandler(accessDeniedHandler);
+                    exception.authenticationEntryPoint(authenticationEntryPoint);
+                })
                 .authorizeHttpRequests(http -> {
                     // Configurar los endpoints publicos
                     http.requestMatchers(HttpMethod.POST, "/auth/**").permitAll();
 
                     // Configurar los endpoints privados
-                    http.requestMatchers(HttpMethod.DELETE, "/superadmin/**").permitAll();
-                    http.requestMatchers(HttpMethod.POST, "/superadmin/**").permitAll();
-                    http.requestMatchers(HttpMethod.GET, "/superadmin/**").permitAll();
-                    http.requestMatchers(HttpMethod.PUT, "/superadmin/**").permitAll();
 
-                    http.requestMatchers(HttpMethod.POST, "/owner/**").permitAll();
-                    http.requestMatchers(HttpMethod.GET, "/owner/**").permitAll();
-                    http.requestMatchers(HttpMethod.PUT, "/owner/**").permitAll();
-                    http.requestMatchers(HttpMethod.DELETE, "/owner/**").permitAll();
+                    //Ownercontroller
+                    http.requestMatchers(HttpMethod.POST, "/propietarios").hasRole("ADMIN"); //Check postOwner
+                    http.requestMatchers(HttpMethod.GET, "/propietarios/{idPropietario}").hasRole("ADMIN"); //Check getOwner
+                    http.requestMatchers(HttpMethod.PUT, "/propietarios/{idPropietario}").hasRole("ADMIN"); //Check putOwner
+                    http.requestMatchers(HttpMethod.DELETE, "/propietarios/{idPropietario}").hasRole("ADMIN"); //Check delete Owner
+                    http.requestMatchers(HttpMethod.GET, "/propietarios").hasRole("ADMIN"); //check getAllOwnerByUserState
 
-                    http.requestMatchers(HttpMethod.POST, "/gas-station/**").permitAll();
-                    http.requestMatchers(HttpMethod.GET, "/gas-station/**").permitAll();
-                    http.requestMatchers(HttpMethod.PUT, "/gas-station/**").permitAll();
-                    http.requestMatchers(HttpMethod.DELETE, "/gas-station/**").permitAll();
-                    http.requestMatchers(HttpMethod.POST, "/gas-station/create-worker-with-image").permitAll();
+                    http.requestMatchers(HttpMethod.POST, "/propietarios/{idOwner}/gasolineras").hasRole("ADMIN"); //Check postGasStation
+                    http.requestMatchers(HttpMethod.GET, "/propietarios/{idOwner}/gasolineras").hasRole("ADMIN"); // Check getGasStationsByIdOwner
+                    http.requestMatchers(HttpMethod.GET, "/propietarios/gasolineras").hasRole("ADMIN"); //Check getAllGasStation
+                    http.requestMatchers(HttpMethod.PUT, "/propietarios/{idPropietario}/gasolineras/{idGasolinera}").hasRole("ADMIN"); //Check getAllGasStation
+                    http.requestMatchers(HttpMethod.DELETE, "/propietarios/{idPropietario}/gasolineras/{idGasolinera}").hasRole("ADMIN"); //Check deleteGasStation
+
+
+                    http.requestMatchers(HttpMethod.GET, "/gasolineras/{workerIdentification}/trabajadores").hasRole("OWNER"); //Check getWorkerByIdentification
+                    http.requestMatchers(HttpMethod.GET, "/gasolineras/{idGasolinera}/trabajadores").hasRole("OWNER"); //getWorkersByIdGasStation --- Revisar
+                    http.requestMatchers(HttpMethod.GET, "/gasolineras/trabajadores/{workerIdentification}").hasRole("OWNER"); //getWorkersByIdentification -- Revisar
+                    http.requestMatchers(HttpMethod.DELETE, "/gasolineras/{idGasolinera}/trabajadores/{idTrabajador}").hasRole("OWNER"); //Check deleteWorkerById
+                    http.requestMatchers(HttpMethod.POST, "/gasolineras/{idGasolinera}/trabajadores").hasRole("OWNER"); // Check addWorkerWithImage
+                    http.requestMatchers(HttpMethod.PUT, "/gasolineras/{idGasolinera}/trabajadores/{idTrabajador}").hasRole("OWNER"); //check editWorkerWithImage
+
+
+                    //Surveys
+                    http.requestMatchers(HttpMethod.POST, "/encuestas").hasAnyRole("ADMIN", "OWNER");
+                    http.requestMatchers(HttpMethod.GET, "/encuestas/trabajadores/{idTrabajador}").hasAnyRole("ADMIN", "OWNER");
+                    http.requestMatchers(HttpMethod.GET, "/encuestas/gasolineras/{idGasStation}").hasAnyRole("ADMIN", "OWNER");
+
+
+                    http.requestMatchers(HttpMethod.GET, "/health").permitAll();
+
+
+
+//                    http.requestMatchers(HttpMethod.POST, "/v1/propietarios/**").permitAll();
+//                    http.requestMatchers(HttpMethod.GET, "/v1/propietarios/**").permitAll();
+//                    http.requestMatchers(HttpMethod.PUT, "/v1/propietarios/**").permitAll();
+//                    http.requestMatchers(HttpMethod.DELETE, "/v1/propietarios/**").permitAll();
+
+
+
 
                     // Configurar el resto de endpoint - NO ESPECIFICADOS
-                    // http.anyRequest().denyAll();
+                    //http.anyRequest().denyAll();
                 })
                 .addFilterBefore(new JwtTokenValidator(jwtUtils), BasicAuthenticationFilter.class)
                 .build();

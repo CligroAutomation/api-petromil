@@ -153,7 +153,8 @@ public class GasStationServiceImpl {
                             gs.getId(),
                             gs.getName(),
                             gs.getAddress(),
-                            gs.getOwner().getName()));
+                            gs.getOwner().getName(),
+                            gs.getOwner().getId()));
         }
 
         return gasStationsResponse;
@@ -178,7 +179,8 @@ public class GasStationServiceImpl {
                             gs.getId(),
                             gs.getName(),
                             gs.getAddress(),
-                            gs.getOwner().getName()));
+                            gs.getOwner().getName(),
+                            gs.getOwner().getId()));
         }
 
         return gasStationsByOwnerResponses;
@@ -235,7 +237,7 @@ public class GasStationServiceImpl {
                 State.ACTIVE);
 
         GasStationsByOwnerResponse response = new GasStationsByOwnerResponse(gs.getId(), gs.getName(), gs.getAddress(),
-                gs.getOwner().getName());
+                gs.getOwner().getName(), gs.getOwner().getId());
         gasStationRepository.save(gs);
         ownerRepository.save(own2);
 
@@ -260,7 +262,7 @@ public class GasStationServiceImpl {
 
                 GasStationsByOwnerResponse response = new GasStationsByOwnerResponse(gs.getId(),
                         gs.getName(), gs.getAddress(),
-                        gs.getName());
+                        gs.getName(), gs.getOwner().getId());
                 return response;
 
             }

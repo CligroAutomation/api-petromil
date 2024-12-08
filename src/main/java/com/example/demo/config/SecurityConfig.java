@@ -65,15 +65,16 @@ public class SecurityConfig {
                     http.requestMatchers(HttpMethod.DELETE, "/propietarios/{idPropietario}").hasRole("ADMIN"); //Check delete Owner
                     http.requestMatchers(HttpMethod.GET, "/propietarios").hasRole("ADMIN"); //check getAllOwnerByUserState
 
+
                     http.requestMatchers(HttpMethod.POST, "/propietarios/{idOwner}/gasolineras").hasRole("ADMIN"); //Check postGasStation
-                    http.requestMatchers(HttpMethod.GET, "/propietarios/{idOwner}/gasolineras").hasRole("ADMIN"); // Check getGasStationsByIdOwner
+                    http.requestMatchers(HttpMethod.GET, "/propietarios/{idOwner}/gasolineras").hasAnyRole("ADMIN", "OWNER"); // Check getGasStationsByIdOwner
                     http.requestMatchers(HttpMethod.GET, "/propietarios/gasolineras").hasRole("ADMIN"); //Check getAllGasStation
-                    http.requestMatchers(HttpMethod.PUT, "/propietarios/{idPropietario}/gasolineras/{idGasolinera}").hasRole("ADMIN"); //Check getAllGasStation
+                    http.requestMatchers(HttpMethod.PUT, "/propietarios/{idPropietario}/gasolineras/{idGasolinera}").hasAnyRole("ADMIN", "OWNER"); //Check editGasStation
                     http.requestMatchers(HttpMethod.DELETE, "/propietarios/{idPropietario}/gasolineras/{idGasolinera}").hasRole("ADMIN"); //Check deleteGasStation
 
 
                     http.requestMatchers(HttpMethod.GET, "/gasolineras/{workerIdentification}/trabajadores").hasRole("OWNER"); //Check getWorkerByIdentification
-                    http.requestMatchers(HttpMethod.GET, "/gasolineras/{idGasolinera}/trabajadores").hasRole("OWNER"); //getWorkersByIdGasStation --- Revisar
+                    http.requestMatchers(HttpMethod.GET, "/gasolineras/{idGasolinera}/trabajadores").permitAll(); //getWorkersByIdGasStation ---
                     http.requestMatchers(HttpMethod.GET, "/gasolineras/trabajadores/{workerIdentification}").hasRole("OWNER"); //getWorkersByIdentification -- Revisar
                     http.requestMatchers(HttpMethod.DELETE, "/gasolineras/{idGasolinera}/trabajadores/{idTrabajador}").hasRole("OWNER"); //Check deleteWorkerById
                     http.requestMatchers(HttpMethod.POST, "/gasolineras/{idGasolinera}/trabajadores").hasRole("OWNER"); // Check addWorkerWithImage
@@ -81,7 +82,7 @@ public class SecurityConfig {
 
 
                     //Surveys
-                    http.requestMatchers(HttpMethod.POST, "/encuestas").hasAnyRole("ADMIN", "OWNER");
+                    http.requestMatchers(HttpMethod.POST, "/encuestas").permitAll();
                     http.requestMatchers(HttpMethod.GET, "/encuestas/trabajadores/{idTrabajador}").hasAnyRole("ADMIN", "OWNER");
                     http.requestMatchers(HttpMethod.GET, "/encuestas/gasolineras/{idGasStation}").hasAnyRole("ADMIN", "OWNER");
 

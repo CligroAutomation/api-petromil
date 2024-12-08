@@ -50,16 +50,16 @@ public class AuthController {
     public ResponseEntity<?> register(@RequestBody @Valid AuthCreatedUserRequest authCreateUser) {
 
         GlobalSuccessResponse<?> response;
+        GlobalErrorResponse responseError;
         AuthResponse obtainUser = userDetailsService.registerUser(authCreateUser);
 
         if (obtainUser == null) {
 
-            response = new GlobalSuccessResponse<>(
+            responseError = new GlobalErrorResponse(
                     false,
-                    "Este usuario ya existe con este correo electronico",
-                    "este usuario ya está registrado");
+                    "Este usuario ya existe con este correo electronico || contraseña muy corta || roles no existen");
 
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(responseError, HttpStatus.NOT_FOUND);
         }
 
         // Respuesta en caso de éxito

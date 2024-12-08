@@ -1,6 +1,8 @@
 package com.example.demo;
 
 import com.example.demo.dao.OwnerRepository;
+import com.example.demo.dao.PermissionRepository;
+import com.example.demo.dao.RoleRepository;
 import com.example.demo.dao.UserRepository;
 import com.example.demo.domain.Owner;
 import com.example.demo.domain.Permission;
@@ -24,78 +26,5 @@ public class BackendForPetromilGasStationApplication {
 	}
 
 
-	@Bean
-	CommandLineRunner init(UserRepository userRepository, OwnerRepository ownerRepository) {
-		return args -> {
-			/* Create PERMISSIONS */
-			Permission createPermission = Permission.builder()
-					.name("CREATE")
-					.build();
 
-			Permission readPermission = Permission.builder()
-					.name("READ")
-					.build();
-
-			Permission updatePermission = Permission.builder()
-					.name("UPDATE")
-					.build();
-
-			Permission deletePermission = Permission.builder()
-					.name("DELETE")
-					.build();
-
-			Permission refactorPermission = Permission.builder()
-					.name("REFACTOR")
-					.build();
-
-			/* Create ROLES */
-			Role roleOWNER = Role.builder()
-					.roleEnum(RoleEnum.OWNER)
-					.permissionList(Set.of(createPermission, readPermission, updatePermission, deletePermission))
-					.build();
-
-			Role roleAdmin = Role.builder()
-					.roleEnum(RoleEnum.ADMIN)
-					.permissionList(Set.of(createPermission, readPermission, updatePermission, deletePermission, refactorPermission))
-					.build();
-
-
-
-			/* CREATE USERS */
-			UserEntity userIsack = UserEntity.builder()
-					.identification("1137974875")
-					.email("isack2910@gmail.com")
-					.password("$2a$10$cMY29RPYoIHMJSuwRfoD3eQxU1J5Rww4VnNOUOAEPqCBshkNfrEf6")
-					.isEnabled(true)
-					.accountNoExpired(true)
-					.accountNoLocked(true)
-					.credentialNoExpired(true)
-					.state(State.ACTIVE)
-					.roles(Set.of(roleOWNER))
-					.build();
-
-			Owner owner = Owner.builder()
-					.name("Isack Padilla")
-					.phone("3117589284")
-					.user(userIsack)
-					.build();
-
-			UserEntity userGaspar = UserEntity.builder()
-					.identification("10064980429")
-					.email("jgasparlopez29@gmail.com")
-					.password("$2a$10$cMY29RPYoIHMJSuwRfoD3eQxU1J5Rww4VnNOUOAEPqCBshkNfrEf6")
-					.isEnabled(true)
-					.accountNoExpired(true)
-					.accountNoLocked(true)
-					.credentialNoExpired(true)
-					.state(State.ACTIVE)
-					.roles(Set.of(roleAdmin))
-					.build();
-
-
-
-			userRepository.saveAll(List.of(userIsack, userGaspar));
-			ownerRepository.save(owner);
-		};
-	}
 }

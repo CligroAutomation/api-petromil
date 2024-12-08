@@ -1,5 +1,6 @@
 package com.example.demo.config.controller;
 
+import com.example.demo.dao.OwnerRepository;
 import com.example.demo.domain.dto.GasStationResponse;
 import com.example.demo.domain.dto.GasStationsByOwnerResponse;
 import com.example.demo.domain.dto.GlobalErrorResponse;
@@ -11,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -20,22 +22,19 @@ public class GasStationController {
     @Autowired
     private GasStationServiceImpl gasStationService;
 
+    @Autowired
+    private OwnerRepository ownerRepository;
+
+
     @PostMapping("/{idOwner}/gasolineras")
     public ResponseEntity<?> postGasStation(@RequestBody @Valid GasStationResponse gasStationResponse, @PathVariable Long idOwner) {
 
         System.out.println("Entro al controlador post");
 
         GlobalSuccessResponse<?> response;
-        GlobalErrorResponse globalErrorResponse;
         GasStationResponse gasStation = gasStationService.createGasStation(gasStationResponse, idOwner);
 
-        if (gasStation == null) {
-            globalErrorResponse = new GlobalErrorResponse(
-                    false,
-                    "Esta gasolinera existe y tienen un dueño asignado");
 
-            return new ResponseEntity<>(globalErrorResponse, HttpStatus.BAD_REQUEST);
-        }
         response = new GlobalSuccessResponse<>(
                 true,
                 "Gasolinera creado correctamente",
@@ -45,20 +44,23 @@ public class GasStationController {
     }
 
     @GetMapping("/{idOwner}/gasolineras")
-    public ResponseEntity<?> getGasStationsByIdOwner(@PathVariable Long idOwner) {
+    public ResponseEntity<?> getGasStationsByIdOwner(@PathVariable Long idOwner, Principal principal) {
+
+        System.out.println("Valor de principal.getName(): " + principal.getName());
+
+        Long authenticatedOwnerId = ownerRepository.getOwnerIdByEmail(principal.getName());
+
+        // Verificar si el usuario es un ADMIN o si el OWNER está intentando acceder a sus propias gasolineras
+        if (!principal.getName().equals("jgasparlopez29@gmail.com") && !authenticatedOwnerId.equals(idOwner)) {
+            return new ResponseEntity<>(
+                    new GlobalErrorResponse(false, "No tienes permiso para acceder a estas gasolineras"),
+                    HttpStatus.FORBIDDEN
+            );
+        }
 
         GlobalSuccessResponse<?> response;
         List<GasStationsByOwnerResponse> gasStations = gasStationService.getGasStationByOwner(idOwner);
-        GlobalErrorResponse globalErrorResponse;
 
-
-        if (gasStations == null) {
-            globalErrorResponse = new GlobalErrorResponse(
-                    false,
-                    "No hay gasolineras asociadas a este dueño");
-            return new ResponseEntity<>(globalErrorResponse, HttpStatus.BAD_REQUEST);
-
-        }
 
         response = new GlobalSuccessResponse<>(
                 true,
@@ -73,16 +75,10 @@ public class GasStationController {
 
         List<GasStationsByOwnerResponse> gasStations = gasStationService.getAllGasStation();
         GlobalSuccessResponse<?> response;
-        GlobalErrorResponse globalErrorResponse;
 
 
-        if (gasStations == null) {
-            globalErrorResponse = new GlobalErrorResponse(
-                    false,
-                    "No existen gasolineras");
-            return new ResponseEntity<>(globalErrorResponse, HttpStatus.NOT_FOUND);
 
-        }
+
 
         response = new GlobalSuccessResponse<>(
                 true,
@@ -93,20 +89,23 @@ public class GasStationController {
     }
 
     @PutMapping("/{idPropietario}/gasolineras/{idGasolinera}")
-    public ResponseEntity<?> editGasStation(@RequestBody @Valid GasStationResponse gasStationResponse, @PathVariable Long idPropietario,@PathVariable Long idGasolinera ) {
+    public ResponseEntity<?> editGasStation(@RequestBody @Valid GasStationResponse gasStationResponse, @PathVariable Long idPropietario,@PathVariable Long idGasolinera, Principal principal ) {
 
-        GlobalErrorResponse globalErrorResponse;
+        System.out.println("Valor de principal.getName(): " + principal.getName());
+        Long authenticatedOwnerId = ownerRepository.getOwnerIdByEmail(principal.getName());
+        // Verificar si el usuario es un ADMIN o si el OWNER está intentando acceder a sus propias gasolineras
+        if (!principal.getName().equals("jgasparlopez29@gmail.com") && !authenticatedOwnerId.equals(idPropietario)) {
+            return new ResponseEntity<>(
+                    new GlobalErrorResponse(false, "No tienes permiso para acceder a estas gasolineras"),
+                    HttpStatus.FORBIDDEN
+            );
+        }
+
+
         System.out.println("Entrar al controlador");
         GlobalSuccessResponse<?> response;
         GasStationsByOwnerResponse gasStations = gasStationService.updateGasStation(gasStationResponse, idPropietario, idGasolinera);
 
-        if (gasStations == null) {
-            globalErrorResponse = new GlobalErrorResponse(
-                    false,
-                    "dueño inactivo o ya tiene la gasstation asociada O NO EXISTE GASOLINERA ");
-            return new ResponseEntity<>(globalErrorResponse, HttpStatus.BAD_REQUEST);
-
-        }
 
         response = new GlobalSuccessResponse<>(
                 true,
@@ -121,16 +120,9 @@ public class GasStationController {
 
         System.out.println("Controlador de delete");
         GlobalSuccessResponse<?> response;
-        GlobalErrorResponse globalErrorResponse;
+
         GasStationsByOwnerResponse gasStations = gasStationService.deleteGasStation(idPropietario,idGasolinera );
         System.out.println("GasStationsByOwnerResponse"+ gasStations);
-        if (gasStations == null) {
-            globalErrorResponse = new GlobalErrorResponse(
-                    false,
-                    "Esta gasolinera no existe");
-            return new ResponseEntity<>(globalErrorResponse, HttpStatus.NOT_FOUND);
-
-        }
 
         response = new GlobalSuccessResponse<>(
                 true,

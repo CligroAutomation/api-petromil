@@ -130,13 +130,22 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         //Obtenemos usaurio y contraseña
         String email = authCreateUserRequest.email();
         String password = authCreateUserRequest.password();
+        String identification = authCreateUserRequest.identification();
+
+
+        if (password.length() < 8) {
+            throw new RuntimeException("The password must be at least 8 characters long.");
+            // Si la contraseña es menor a 8 caracteres, retorna null
+        }
 
         // Validar si el usuario ya existe
         if (userRepository.findUserEntityByEmail(email).isPresent()) {
-            //throw new IllegalArgumentException("The email is already registered.");
-            return null;
+            throw new RuntimeException("The email is already registered.");
+
 
         }
+
+
 
         //Obtengo los roles
         List<String> roleRequest = authCreateUserRequest.roleRequest().roleListName();
@@ -145,11 +154,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         Set<Role> roleEntitySet = roleRepository.findRoleEntitiesByRoleEnumIn(roleRequest).stream().collect(Collectors.toSet());
 
         if(roleEntitySet.isEmpty()){
-            throw new IllegalArgumentException("The roles specified does not exist");
+            throw new RuntimeException("The roles specified does not exist");
         }
 
 
         UserEntity userEntity = UserEntity.builder()
+                .identification(identification)
                 .email(email)
                 .password(passwordEncoder.encode(password))
                 .roles(roleEntitySet)

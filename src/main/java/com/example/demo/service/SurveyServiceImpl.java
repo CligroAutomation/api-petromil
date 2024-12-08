@@ -10,6 +10,7 @@ import com.example.demo.domain.dto.SurveyGasStationResponse;
 import com.example.demo.domain.dto.SurveyGasStationWorkerResponse;
 import com.example.demo.domain.dto.SurveyRequest;
 import com.example.demo.enums.Rating;
+import com.example.demo.enums.State;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -35,26 +36,30 @@ public class SurveyServiceImpl {
                 +surveyRequest.idGasStationWorker());
 
         if(surveyRequest.idGasStation() == null || surveyRequest.idGasStationWorker() == null){
-            System.out.println("las ids no pueden ser nulas");
-            return null;
+            throw new RuntimeException("las ids no pueden ser nulas");
+
         }
 
         Optional<GasStation> gasStationOptional = gasStationRepository.findById(surveyRequest.idGasStation());
         Optional<GasStationWorker> gasStationWorkerOptional = gasStationWorkerRepository.findById(surveyRequest.idGasStationWorker());
 
         if(!gasStationOptional.isPresent()){
-            System.out.println("La gasolinera no existe");
-            return  null;
+            throw new RuntimeException("La gasolinera no existe");
         }
         GasStation gs = gasStationOptional.get();
 
         if(!gasStationWorkerOptional.isPresent()){
-            System.out.println("El trabajador no existe");
-            return  null;
+            throw new RuntimeException("El trabajador no existe");
+
         }
 
         GasStationWorker gsw = gasStationWorkerOptional.get();
 
+        if(gsw.getGasStation().getId() != gs.getId()){
+            throw new RuntimeException("El trabajador al cual le quieres hacer la encuesta, no está asociado a la gasolinería descrita");
+
+
+        }
 
 
         Survey survey = new Survey();
@@ -77,9 +82,14 @@ public class SurveyServiceImpl {
 
              List<Survey> surveyList = surveyRepository.findByGasStationWorker(gasStationWorker);
 
+             if(gasStationWorker.getState() == State.INACTIVE){
+                 throw new RuntimeException("Este trabajador está inactiva");
+
+             }
+
              if(surveyList.isEmpty()){
-                 System.out.println("Este trabajador no tiene  encuestas");
-                 return null;
+                 throw new RuntimeException("Este trabajador no tiene  encuestas");
+
              }
 
             SurveyGasStationWorkerResponse.WorkerDTO workerDTO = new SurveyGasStationWorkerResponse.WorkerDTO(
@@ -101,8 +111,8 @@ public class SurveyServiceImpl {
 
         }
 
-        System.out.println("Este trabajador no existe");
-        return null;
+        throw new RuntimeException("Este trabajador no existe");
+
 
     }
 
@@ -113,11 +123,16 @@ public class SurveyServiceImpl {
 
             GasStation gasStation = gasStationWorkerOptional.get();
 
+            if(gasStation.getState() == State.INACTIVE){
+                throw new RuntimeException("Este gasolinera está inactiva");
+
+            }
+
             List<Survey> surveyList = surveyRepository.findByGasStation(gasStation);
 
             if(surveyList.isEmpty()){
-                System.out.println("Este gasolinera no tiene  encuestas");
-                return null;
+                throw new RuntimeException("Este gasolinera no tiene  encuestas");
+
             }
 
             SurveyGasStationResponse.GasStationDTO GasStationDTO = new SurveyGasStationResponse.GasStationDTO(
@@ -139,8 +154,8 @@ public class SurveyServiceImpl {
 
         }
 
-        System.out.println("Esta gasolinera no existe");
-        return null;
+        throw new RuntimeException("Esta gasolinera no existe");
+
 
     }
 

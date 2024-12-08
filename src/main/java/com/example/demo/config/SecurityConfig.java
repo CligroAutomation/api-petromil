@@ -66,6 +66,7 @@ public class SecurityConfig {
                     http.requestMatchers(HttpMethod.GET, "/propietarios").hasRole("ADMIN"); //check getAllOwnerByUserState
 
 
+                    //GasStationController
                     http.requestMatchers(HttpMethod.POST, "/propietarios/{idOwner}/gasolineras").hasRole("ADMIN"); //Check postGasStation
                     http.requestMatchers(HttpMethod.GET, "/propietarios/{idOwner}/gasolineras").hasAnyRole("ADMIN", "OWNER"); // Check getGasStationsByIdOwner
                     http.requestMatchers(HttpMethod.GET, "/propietarios/gasolineras").hasRole("ADMIN"); //Check getAllGasStation
@@ -73,13 +74,12 @@ public class SecurityConfig {
                     http.requestMatchers(HttpMethod.DELETE, "/propietarios/{idPropietario}/gasolineras/{idGasolinera}").hasRole("ADMIN"); //Check deleteGasStation
 
 
-                    //http.requestMatchers(HttpMethod.GET, "/gasolineras/{workerIdentification}/trabajadores").hasRole("OWNER"); //Check getWorkerByIdentification
-
+                    //WorkerController
                     http.requestMatchers(HttpMethod.GET, "/gasolineras/{idGasolinera}/trabajadores").permitAll(); //getWorkersByIdGasStation ---
-                    http.requestMatchers(HttpMethod.GET, "/gasolineras/trabajadores/{workerIdentification}").hasRole("OWNER"); //getWorkersByIdentification -- Revisar
-                    http.requestMatchers(HttpMethod.DELETE, "/gasolineras/{idGasolinera}/trabajadores/{idTrabajador}").hasRole("OWNER"); //Check deleteWorkerById
-                    http.requestMatchers(HttpMethod.POST, "/gasolineras/{idGasolinera}/trabajadores").hasRole("OWNER"); // Check addWorkerWithImage
-                    http.requestMatchers(HttpMethod.PUT, "/gasolineras/{idGasolinera}/trabajadores/{idTrabajador}").hasRole("OWNER"); //check editWorkerWithImage
+                    http.requestMatchers(HttpMethod.GET, "/gasolineras/trabajadores/{workerIdentification}").hasAnyRole("ADMIN", "OWNER"); //getWorkersByIdentification -- Revisar
+                    http.requestMatchers(HttpMethod.DELETE, "/gasolineras/{idGasolinera}/trabajadores/{idTrabajador}").hasAnyRole("ADMIN", "OWNER"); //Check deleteWorkerById
+                    http.requestMatchers(HttpMethod.POST, "/gasolineras/{idGasolinera}/trabajadores").hasAnyRole("ADMIN", "OWNER"); // Check addWorkerWithImage
+                    http.requestMatchers(HttpMethod.PUT, "/gasolineras/{idGasolinera}/trabajadores/{idTrabajador}").hasAnyRole("ADMIN", "OWNER"); //check editWorkerWithImage
 
 
                     //Surveys
@@ -90,18 +90,7 @@ public class SecurityConfig {
 
                     http.requestMatchers(HttpMethod.GET, "/health").permitAll();
 
-
-
-//                    http.requestMatchers(HttpMethod.POST, "/v1/propietarios/**").permitAll();
-//                    http.requestMatchers(HttpMethod.GET, "/v1/propietarios/**").permitAll();
-//                    http.requestMatchers(HttpMethod.PUT, "/v1/propietarios/**").permitAll();
-//                    http.requestMatchers(HttpMethod.DELETE, "/v1/propietarios/**").permitAll();
-
-
-
-
-                    // Configurar el resto de endpoint - NO ESPECIFICADOS
-                    //http.anyRequest().denyAll();
+                    http.anyRequest().denyAll();
                 })
                 .addFilterBefore(new JwtTokenValidator(jwtUtils), BasicAuthenticationFilter.class)
                 .build();

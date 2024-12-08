@@ -2,8 +2,6 @@ package com.example.demo.domain.dto;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-
 @JsonPropertyOrder({ "token", "user" })
 public record AuthResponse(String token, UserDTO user) {
 

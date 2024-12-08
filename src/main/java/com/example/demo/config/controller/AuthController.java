@@ -1,6 +1,5 @@
 package com.example.demo.config.controller;
 
-import com.example.demo.domain.UserEntity;
 import com.example.demo.domain.dto.*;
 import com.example.demo.service.UserDetailsServiceImpl;
 import jakarta.validation.Valid;

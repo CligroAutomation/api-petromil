@@ -92,26 +92,34 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     public AuthResponse loginUser(AuthLoginRequest authLoginRequest) {
-        String email = authLoginRequest.email(); // Extraer email del request
-        String password = authLoginRequest.password(); // Extraer password del request
+        String email = authLoginRequest.email();
+        String password = authLoginRequest.password();
 
         try {
-            // Intentar autenticar al usuario
+            // Autenticar al usuario
             Authentication authentication = this.authenticate(email, password);
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            // Generar el token de acceso si la autenticación es exitosa
+            // Generar token de acceso
             String accessToken = jwtUtils.createToken(authentication);
             UserEntity u = userRepository.findUserEntityByEmail(email).get();
-            AuthResponse.UserDTO userDTO = new AuthResponse.UserDTO(u.getId(), u.getEmail(), u.getRoles().stream()
-                    .map(role -> new AuthResponse.UserDTO.Role(role.getRoleEnum().name()))
-                    .toArray(AuthResponse.UserDTO.Role[]::new));
 
-            // Retornar respuesta de autenticación exitosa
+            // Obtener ownerId de manera segura
+            Long ownerId = (u.getOwner() != null) ? u.getOwner().getId() : null;
+
+            // Construir el UserDTO con ownerId
+            AuthResponse.UserDTO userDTO = new AuthResponse.UserDTO(
+                    u.getId(),
+                    u.getEmail(),
+                    u.getRoles().stream()
+                            .map(role -> new AuthResponse.UserDTO.Role(role.getRoleEnum().name()))
+                            .toArray(AuthResponse.UserDTO.Role[]::new),
+                    ownerId // Incluir ownerId, que puede ser null
+            );
+
             return new AuthResponse(accessToken, userDTO);
         } catch (UsernameNotFoundException | BadCredentialsException ex) {
-            // Si el usuario no existe o las credenciales son incorrectas, devolver null
-            return null;
+            return null; // Retornar null si ocurre un error de autenticación
         }
     }
 
@@ -204,11 +212,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         Authentication authentication = new UsernamePasswordAuthenticationToken(userCreated.getEmail(),
                 userCreated.getPassword(), authorityList);
         String accesToken = jwtUtils.createToken(authentication);
-
+        Long ownerId = (userCreated.getOwner() != null) ? userCreated.getOwner().getId() : null;
         AuthResponse.UserDTO userDTO = new AuthResponse.UserDTO(userCreated.getId(), userCreated.getEmail(),
                 userCreated.getRoles().stream()
                         .map(role -> new AuthResponse.UserDTO.Role(role.getRoleEnum().name()))
-                        .toArray(AuthResponse.UserDTO.Role[]::new));
+                        .toArray(AuthResponse.UserDTO.Role[]::new),
+                ownerId);
 
         AuthResponse authResponse = new AuthResponse(accesToken, userDTO);
         return authResponse;
@@ -231,10 +240,13 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         UserEntity userEntity = userRepository.findUserEntityByEmail(email)
                 .orElseThrow(() -> new RuntimeException("El usuario no fue encontrado en la base de datos."));
 
+        Long ownerId = (userEntity.getOwner() != null) ? userEntity.getOwner().getId() : null;
+
         AuthResponse.UserDTO userDTO = new AuthResponse.UserDTO(userEntity.getId(), userEntity.getEmail(),
                 userEntity.getRoles().stream()
                         .map(role -> new AuthResponse.UserDTO.Role(role.getRoleEnum().name()))
-                        .toArray(AuthResponse.UserDTO.Role[]::new));
+                        .toArray(AuthResponse.UserDTO.Role[]::new),
+                ownerId);
 
         return new AuthResponse(null, userDTO); // Return AuthResponse with userDTO and null token
     }

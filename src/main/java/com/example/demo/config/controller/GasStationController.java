@@ -25,15 +25,14 @@ public class GasStationController {
     @Autowired
     private OwnerRepository ownerRepository;
 
-
     @PostMapping("/{idOwner}/gasolineras")
-    public ResponseEntity<?> postGasStation(@RequestBody @Valid GasStationResponse gasStationResponse, @PathVariable Long idOwner) {
+    public ResponseEntity<?> postGasStation(@RequestBody @Valid GasStationResponse gasStationResponse,
+            @PathVariable Long idOwner) {
 
         System.out.println("Entro al controlador post");
 
         GlobalSuccessResponse<?> response;
         GasStationResponse gasStation = gasStationService.createGasStation(gasStationResponse, idOwner);
-
 
         response = new GlobalSuccessResponse<>(
                 true,
@@ -50,17 +49,16 @@ public class GasStationController {
 
         Long authenticatedOwnerId = ownerRepository.getOwnerIdByEmail(principal.getName());
 
-        // Verificar si el usuario es un ADMIN o si el OWNER está intentando acceder a sus propias gasolineras
-        if (!principal.getName().equals("jgasparlopez29@gmail.com") && !authenticatedOwnerId.equals(idOwner)) {
+        // Verificar si el usuario es un ADMIN o si el OWNER está intentando acceder a
+        // sus propias gasolineras
+        if (!principal.getName().equals("admin@cligro.tech") && !authenticatedOwnerId.equals(idOwner)) {
             return new ResponseEntity<>(
                     new GlobalErrorResponse(false, "No tienes permiso para acceder a estas gasolineras"),
-                    HttpStatus.FORBIDDEN
-            );
+                    HttpStatus.FORBIDDEN);
         }
 
         GlobalSuccessResponse<?> response;
         List<GasStationsByOwnerResponse> gasStations = gasStationService.getGasStationByOwner(idOwner);
-
 
         response = new GlobalSuccessResponse<>(
                 true,
@@ -76,10 +74,6 @@ public class GasStationController {
         List<GasStationsByOwnerResponse> gasStations = gasStationService.getAllGasStation();
         GlobalSuccessResponse<?> response;
 
-
-
-
-
         response = new GlobalSuccessResponse<>(
                 true,
                 "Lista de gasolineras encontradas correctamente",
@@ -89,23 +83,23 @@ public class GasStationController {
     }
 
     @PutMapping("/{idPropietario}/gasolineras/{idGasolinera}")
-    public ResponseEntity<?> editGasStation(@RequestBody @Valid GasStationResponse gasStationResponse, @PathVariable Long idPropietario,@PathVariable Long idGasolinera, Principal principal ) {
+    public ResponseEntity<?> editGasStation(@RequestBody @Valid GasStationResponse gasStationResponse,
+            @PathVariable Long idPropietario, @PathVariable Long idGasolinera, Principal principal) {
 
         System.out.println("Valor de principal.getName(): " + principal.getName());
         Long authenticatedOwnerId = ownerRepository.getOwnerIdByEmail(principal.getName());
-        // Verificar si el usuario es un ADMIN o si el OWNER está intentando acceder a sus propias gasolineras
-        if (!principal.getName().equals("jgasparlopez29@gmail.com") && !authenticatedOwnerId.equals(idPropietario)) {
+        // Verificar si el usuario es un ADMIN o si el OWNER está intentando acceder a
+        // sus propias gasolineras
+        if (!principal.getName().equals("admin@cligro.tech") && !authenticatedOwnerId.equals(idPropietario)) {
             return new ResponseEntity<>(
                     new GlobalErrorResponse(false, "No tienes permiso para acceder a estas gasolineras"),
-                    HttpStatus.FORBIDDEN
-            );
+                    HttpStatus.FORBIDDEN);
         }
-
 
         System.out.println("Entrar al controlador");
         GlobalSuccessResponse<?> response;
-        GasStationsByOwnerResponse gasStations = gasStationService.updateGasStation(gasStationResponse, idPropietario, idGasolinera);
-
+        GasStationsByOwnerResponse gasStations = gasStationService.updateGasStation(gasStationResponse, idPropietario,
+                idGasolinera);
 
         response = new GlobalSuccessResponse<>(
                 true,
@@ -116,13 +110,13 @@ public class GasStationController {
     }
 
     @DeleteMapping("/{idPropietario}/gasolineras/{idGasolinera}")
-    public ResponseEntity<?> deleteGasStation(@PathVariable Long idPropietario, @PathVariable Long idGasolinera ) {
+    public ResponseEntity<?> deleteGasStation(@PathVariable Long idPropietario, @PathVariable Long idGasolinera) {
 
         System.out.println("Controlador de delete");
         GlobalSuccessResponse<?> response;
 
-        GasStationsByOwnerResponse gasStations = gasStationService.deleteGasStation(idPropietario,idGasolinera );
-        System.out.println("GasStationsByOwnerResponse"+ gasStations);
+        GasStationsByOwnerResponse gasStations = gasStationService.deleteGasStation(idPropietario, idGasolinera);
+        System.out.println("GasStationsByOwnerResponse" + gasStations);
 
         response = new GlobalSuccessResponse<>(
                 true,

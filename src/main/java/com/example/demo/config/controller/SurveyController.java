@@ -31,18 +31,13 @@ public class SurveyController {
     @Autowired
     private GasStationRepository gasStationRepository;
 
-
     @PostMapping
-    public ResponseEntity<?> postSurvey( @RequestBody SurveyRequest surveyRequest){
+    public ResponseEntity<?> postSurvey(@RequestBody SurveyRequest surveyRequest) {
         System.out.println("PostMapping survey controller");
 
         GlobalSuccessResponse<?> response;
 
-
         SurveyRequest survey = surveyService.createSurvey(surveyRequest);
-
-
-
 
         response = new GlobalSuccessResponse<>(
                 true,
@@ -50,9 +45,7 @@ public class SurveyController {
                 survey);
         return new ResponseEntity<>(response, HttpStatus.OK);
 
-
     }
-
 
     @GetMapping("/trabajadores/{idTrabajador}")
     public ResponseEntity<?> getSurveyByIdGasStationWorker(@PathVariable Long idTrabajador, Principal principal) {
@@ -63,7 +56,7 @@ public class SurveyController {
         GlobalErrorResponse errorResponse;
 
         // Verificar si el usuario es ADMIN
-        boolean isAdmin = principal.getName().equals("jgasparlopez29@gmail.com");
+        boolean isAdmin = principal.getName().equals("admin@cligro.tech");
         if (!isAdmin) {
             // Si no es ADMIN, verificar si el OWNER tiene permisos
             Optional<GasStationWorker> worker = gasStationWorkerRepository.findById(idTrabajador);
@@ -102,7 +95,7 @@ public class SurveyController {
     }
 
     @GetMapping("/gasolineras/{idGasStation}")
-    public ResponseEntity<?> getSurveyByIdGasStation(@PathVariable Long idGasStation, Principal principal){
+    public ResponseEntity<?> getSurveyByIdGasStation(@PathVariable Long idGasStation, Principal principal) {
 
         System.out.println("Controlador getSurveyByIdGasStation");
 
@@ -110,7 +103,7 @@ public class SurveyController {
         GlobalErrorResponse errorResponse;
 
         // Verificar si el usuario es ADMIN
-        boolean isAdmin = principal.getName().equals("jgasparlopez29@gmail.com");
+        boolean isAdmin = principal.getName().equals("admin@cligro.tech");
         if (!isAdmin) {
             // Si no es ADMIN, verificar si el OWNER tiene permisos
             Optional<GasStation> gasStationOptional = gasStationRepository.findById(idGasStation);
@@ -145,6 +138,5 @@ public class SurveyController {
         return new ResponseEntity<>(response, HttpStatus.OK);
 
     }
-
 
 }

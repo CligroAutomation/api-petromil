@@ -44,7 +44,7 @@ public class GasStationWorkerController {
                 Long authenticatedOwnerId = ownerRepository.getOwnerIdByEmail(principal.getName());
 
                 // Verificar si el usuario es ADMIN
-                boolean isAdmin = principal.getName().equals("jgasparlopez29@gmail.com");
+                boolean isAdmin = principal.getName().equals("admin@cligro.tech");
                 if (!isAdmin) {
                         // Si no es ADMIN, verificar si el OWNER está intentando acceder solo a sus
                         // propios trabajadores
@@ -109,7 +109,7 @@ public class GasStationWorkerController {
                 Long authenticatedOwnerId = ownerRepository.getOwnerIdByEmail(principal.getName());
 
                 // Verificar si el usuario es ADMIN o el propietario de la gasolinera
-                boolean isAdmin = principal.getName().equals("jgasparlopez29@gmail.com");
+                boolean isAdmin = principal.getName().equals("admin@cligro.tech");
                 if (!isAdmin) {
                         // Verificar si el OWNER está intentando acceder a una gasolinera que le
                         // pertenece
@@ -150,7 +150,7 @@ public class GasStationWorkerController {
                 Long authenticatedOwnerId = ownerRepository.getOwnerIdByEmail(principal.getName());
 
                 // Verificar si el usuario es ADMIN o el propietario de la gasolinera
-                boolean isAdmin = principal.getName().equals("jgasparlopez29@gmail.com");
+                boolean isAdmin = principal.getName().equals("admin@cligro.tech");
                 if (!isAdmin) {
                         // Verificar si el OWNER está intentando acceder a una gasolinera que le
                         // pertenece
@@ -202,7 +202,7 @@ public class GasStationWorkerController {
                 Long authenticatedOwnerId = ownerRepository.getOwnerIdByEmail(principal.getName());
 
                 // Verificar si el usuario es ADMIN o el propietario de la gasolinera
-                boolean isAdmin = principal.getName().equals("jgasparlopez29@gmail.com");
+                boolean isAdmin = principal.getName().equals("admin@cligro.tech");
                 if (!isAdmin) {
                         // Verificar si el OWNER está intentando acceder a una gasolinera que le
                         // pertenece

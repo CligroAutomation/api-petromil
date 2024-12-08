@@ -103,7 +103,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             // Generar el token de acceso si la autenticación es exitosa
             String accessToken = jwtUtils.createToken(authentication);
             UserEntity u = userRepository.findUserEntityByEmail(email).get();
-            AuthResponse.UserDTO userDTO = new AuthResponse.UserDTO(u.getId(), u.getEmail());
+            AuthResponse.UserDTO userDTO = new AuthResponse.UserDTO(u.getId(), u.getEmail(), u.getRoles().stream()
+                    .map(role -> new AuthResponse.UserDTO.Role(role.getRoleEnum().name()))
+                    .toArray(AuthResponse.UserDTO.Role[]::new));
 
             // Retornar respuesta de autenticación exitosa
             return new AuthResponse(accessToken, userDTO);
@@ -203,11 +205,38 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 userCreated.getPassword(), authorityList);
         String accesToken = jwtUtils.createToken(authentication);
 
-        AuthResponse.UserDTO userDTO = new AuthResponse.UserDTO(userCreated.getId(), userCreated.getEmail());
+        AuthResponse.UserDTO userDTO = new AuthResponse.UserDTO(userCreated.getId(), userCreated.getEmail(),
+                userCreated.getRoles().stream()
+                        .map(role -> new AuthResponse.UserDTO.Role(role.getRoleEnum().name()))
+                        .toArray(AuthResponse.UserDTO.Role[]::new));
 
         AuthResponse authResponse = new AuthResponse(accesToken, userDTO);
         return authResponse;
 
+    }
+
+    public AuthResponse getMe() {
+        // Obtener el contexto de seguridad
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        // Si no hay un usuario autenticado, lanzar una excepción
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("El usuario no está autenticado.");
+        }
+
+        // Obtener el email del usuario autenticado desde el contexto
+        String email = authentication.getName();
+
+        // Buscar el usuario en la base de datos utilizando su email
+        UserEntity userEntity = userRepository.findUserEntityByEmail(email)
+                .orElseThrow(() -> new RuntimeException("El usuario no fue encontrado en la base de datos."));
+
+        AuthResponse.UserDTO userDTO = new AuthResponse.UserDTO(userEntity.getId(), userEntity.getEmail(),
+                userEntity.getRoles().stream()
+                        .map(role -> new AuthResponse.UserDTO.Role(role.getRoleEnum().name()))
+                        .toArray(AuthResponse.UserDTO.Role[]::new));
+
+        return new AuthResponse(null, userDTO); // Return AuthResponse with userDTO and null token
     }
 
 }

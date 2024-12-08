@@ -56,6 +56,7 @@ public class SecurityConfig {
                                 .authorizeHttpRequests(http -> {
                                         // Configurar los endpoints publicos
                                         http.requestMatchers(HttpMethod.POST, "/auth/**").permitAll();
+                                        http.requestMatchers(HttpMethod.GET, "/auth/**").permitAll();
 
                                         // Configurar los endpoints privados
 

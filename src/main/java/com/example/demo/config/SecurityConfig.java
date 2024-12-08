@@ -73,7 +73,8 @@ public class SecurityConfig {
                     http.requestMatchers(HttpMethod.DELETE, "/propietarios/{idPropietario}/gasolineras/{idGasolinera}").hasRole("ADMIN"); //Check deleteGasStation
 
 
-                    http.requestMatchers(HttpMethod.GET, "/gasolineras/{workerIdentification}/trabajadores").hasRole("OWNER"); //Check getWorkerByIdentification
+                    //http.requestMatchers(HttpMethod.GET, "/gasolineras/{workerIdentification}/trabajadores").hasRole("OWNER"); //Check getWorkerByIdentification
+
                     http.requestMatchers(HttpMethod.GET, "/gasolineras/{idGasolinera}/trabajadores").permitAll(); //getWorkersByIdGasStation ---
                     http.requestMatchers(HttpMethod.GET, "/gasolineras/trabajadores/{workerIdentification}").hasRole("OWNER"); //getWorkersByIdentification -- Revisar
                     http.requestMatchers(HttpMethod.DELETE, "/gasolineras/{idGasolinera}/trabajadores/{idTrabajador}").hasRole("OWNER"); //Check deleteWorkerById

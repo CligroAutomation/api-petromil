@@ -4,6 +4,7 @@ import com.example.demo.enums.State;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.util.HashSet;
@@ -33,6 +34,7 @@ public class UserEntity {
 
     @Column(name = "password")
     @NotNull
+    @Size(min = 8, message = "La contraseña debe tener al menos 8 caracteres")
     private String password;
 
     @Column(name = "is_enabled")

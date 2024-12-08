@@ -1,11 +1,19 @@
 package com.example.demo.config.controller;
 
+import com.example.demo.dao.GasStationRepository;
+import com.example.demo.dao.GasStationWorkerRepository;
+import com.example.demo.dao.OwnerRepository;
+import com.example.demo.domain.GasStation;
+import com.example.demo.domain.GasStationWorker;
 import com.example.demo.domain.dto.*;
 import com.example.demo.service.SurveyServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/encuestas")
@@ -14,24 +22,27 @@ public class SurveyController {
     @Autowired
     private SurveyServiceImpl surveyService;
 
+    @Autowired
+    private GasStationWorkerRepository gasStationWorkerRepository;
+
+    @Autowired
+    private OwnerRepository ownerRepository;
+
+    @Autowired
+    private GasStationRepository gasStationRepository;
+
 
     @PostMapping
     public ResponseEntity<?> postSurvey( @RequestBody SurveyRequest surveyRequest){
         System.out.println("PostMapping survey controller");
 
         GlobalSuccessResponse<?> response;
-        GlobalErrorResponse errorResponse;
+
 
         SurveyRequest survey = surveyService.createSurvey(surveyRequest);
 
-        if(survey == null){
 
-            errorResponse = new GlobalErrorResponse(
-                    false,
-                    "Gasolinera no existe o trabajador tampoco, no se encuentra alguno de los dos");
 
-            return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
-        }
 
         response = new GlobalSuccessResponse<>(
                 true,
@@ -44,59 +55,94 @@ public class SurveyController {
 
 
     @GetMapping("/trabajadores/{idTrabajador}")
-    public ResponseEntity<?> getSurveyByIdGasStationWorker (@PathVariable Long idTrabajador){
+    public ResponseEntity<?> getSurveyByIdGasStationWorker(@PathVariable Long idTrabajador, Principal principal) {
 
-        System.out.println("Contralodor getSurveyByIdGasStationWorker ");
+        System.out.println("Controlador getSurveyByIdGasStationWorker ");
 
         GlobalSuccessResponse<?> response;
         GlobalErrorResponse errorResponse;
 
+        // Verificar si el usuario es ADMIN
+        boolean isAdmin = principal.getName().equals("jgasparlopez29@gmail.com");
+        if (!isAdmin) {
+            // Si no es ADMIN, verificar si el OWNER tiene permisos
+            Optional<GasStationWorker> worker = gasStationWorkerRepository.findById(idTrabajador);
 
-        SurveyGasStationWorkerResponse survey = surveyService.getSurveyByIdGasStationWorker(idTrabajador);
+            if (worker.isEmpty()) {
+                errorResponse = new GlobalErrorResponse(
+                        false,
+                        "No se encuentra la id del trabajador en la base de datos");
+                return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+            }
 
-        if(survey == null){
+            // Obtener la gasolinera asociada al trabajador
+            GasStation gasStation = worker.get().getGasStation();
 
-            errorResponse = new GlobalErrorResponse(
-                    false,
-                    "No se encuentra la id del trabajador en la base de datos o no tiene encuestas");
+            // Obtener el ID del dueño autenticado
+            Long authenticatedOwnerId = ownerRepository.getOwnerIdByEmail(principal.getName());
 
-            return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+            // Verificar si la gasolinera pertenece al dueño autenticado
+            if (!gasStation.getOwner().getId().equals(authenticatedOwnerId)) {
+                errorResponse = new GlobalErrorResponse(
+                        false,
+                        "No tienes permiso para acceder a las encuestas de este trabajador");
+                return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+            }
         }
 
+        // Si es ADMIN o tiene permisos, obtener las encuestas del trabajador
+        SurveyGasStationWorkerResponse survey = surveyService.getSurveyByIdGasStationWorker(idTrabajador);
+
+        // Respuesta exitosa
         response = new GlobalSuccessResponse<>(
                 true,
                 "Lista de encuestas asignadas al trabajador obtenidas correctamente",
                 survey);
         return new ResponseEntity<>(response, HttpStatus.OK);
-
-
     }
 
     @GetMapping("/gasolineras/{idGasStation}")
-    public ResponseEntity<?> getSurveyByIdGasStation(@PathVariable Long idGasStation){
-
+    public ResponseEntity<?> getSurveyByIdGasStation(@PathVariable Long idGasStation, Principal principal){
 
         System.out.println("Controlador getSurveyByIdGasStation");
+
         GlobalSuccessResponse<?> response;
         GlobalErrorResponse errorResponse;
 
+        // Verificar si el usuario es ADMIN
+        boolean isAdmin = principal.getName().equals("jgasparlopez29@gmail.com");
+        if (!isAdmin) {
+            // Si no es ADMIN, verificar si el OWNER tiene permisos
+            Optional<GasStation> gasStationOptional = gasStationRepository.findById(idGasStation);
 
-        SurveyGasStationResponse survey = surveyService.getSurveyByIdGasStation(idGasStation);
+            if (gasStationOptional.isEmpty()) {
+                errorResponse = new GlobalErrorResponse(
+                        false,
+                        "No se encuentra la id de la gasolinera en la base de datos");
+                return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+            }
 
-        if(survey == null){
+            // Obtener la gasolinera y verificar el propietario
+            GasStation gasStation = gasStationOptional.get();
+            Long authenticatedOwnerId = ownerRepository.getOwnerIdByEmail(principal.getName());
 
-            errorResponse = new GlobalErrorResponse(
-                    false,
-                    "No se encuentra la id de la gasolinera en la base de datos o no tiene encuestas");
-            return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+            if (!gasStation.getOwner().getId().equals(authenticatedOwnerId)) {
+                errorResponse = new GlobalErrorResponse(
+                        false,
+                        "No tienes permiso para acceder a las encuestas de esta gasolinera");
+                return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+            }
         }
 
+        // Si es ADMIN o tiene permisos, obtener las encuestas de la gasolinera
+        SurveyGasStationResponse survey = surveyService.getSurveyByIdGasStation(idGasStation);
+
+        // Respuesta exitosa
         response = new GlobalSuccessResponse<>(
                 true,
                 "Lista de encuestas asignadas a la gasolinera obtenidas correctamente",
                 survey);
         return new ResponseEntity<>(response, HttpStatus.OK);
-
 
     }
 

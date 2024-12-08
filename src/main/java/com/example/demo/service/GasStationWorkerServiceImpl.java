@@ -108,8 +108,8 @@ public class GasStationWorkerServiceImpl {
     public GasStationWorkerResponse getGasStationWorkerById(String identification) {
 
         if (identification == null) {
-            System.out.println("la identificación no puede estar vacía");
-            return null;
+            throw new RuntimeException("Identification no pueden ser nulos");
+
 
         }
 
@@ -129,29 +129,29 @@ public class GasStationWorkerServiceImpl {
 
         }
 
-        return null;
+        throw new RuntimeException("No existe un trabajador con esta identificación");
 
     }
 
     public List<GasStationWorkerResponse> getAllWorkersByIdGasStation(Long gasStationId) {
 
         if (gasStationId == null) {
-            System.out.println("La id no puede estar vacía");
-            return null;
+            throw new RuntimeException("La id no puede estar vacía");
+
         }
 
         // Verifica si la gasolinera existe
         if (!gasStationRepository.existsById(gasStationId)) {
-            System.out.println("EntityNotFoundException(\"La gasolinera con ID \" + gasStationId + \" no existe.\");");
+            throw new RuntimeException("La gasolinera no existe");
         }
 
         // Obtiene los trabajadores activos de la gasolinera
         List<GasStationWorkerResponse> workers = gasStationWorkerRepository.findWorkersByGasStationIdAndState(gasStationId, State.ACTIVE);
 
         if (workers.isEmpty()) {
-            System.out.println("No hay trabajadores en esta gasolinera");
+            throw new RuntimeException("No hay trabajadores en esta gasolinera");
 
-            return null;
+
             // Retorna la lista (puede estar vacía)
 
         }
@@ -226,11 +226,11 @@ public class GasStationWorkerServiceImpl {
                         gsw.getPhone(), gsw.getImage(), gsw.getGasStation().getName());
 
             }
-            System.out.println("Este usuario ya ha sido eliminado anteriormente");
+            throw new RuntimeException("Este usuario ya ha sido eliminado anteriormente");
         }
 
-        System.out.println("No existe un trabajador con esta ID");
-        return null;
+        throw new RuntimeException("No existe un trabajador con esta ID");
+
 
 
     }
@@ -239,29 +239,29 @@ public class GasStationWorkerServiceImpl {
 
         // Validar datos de entrada
         if (gasStationWorkerRequest == null || idGasolinera == null) {
-            System.out.println("El trabajador no puede ser null");
-            return null;
-        }
+            throw new RuntimeException("El trabajador no puede ser null");
 
-        if (image == null || image.isEmpty()) {
-            System.out.println("La imagen no puede ser nula o vacía");
-            return null;
         }
-
         // Verificar si la gasolinera existe y está activa
         Optional<GasStation> optionalGasStation = gasStationRepository.findById(idGasolinera);
         if (optionalGasStation.isEmpty() || optionalGasStation.get().getState() != State.ACTIVE) {
-            System.out.println("La gasolinera no existe o no está activa.");
-            return null;
+            throw new RuntimeException("La gasolinera no existe o no está activa.");
+
         }
+
+        if (image == null || image.isEmpty()) {
+            throw new RuntimeException("La imagen no puede ser nula o vacía");
+
+        }
+
 
         GasStation gasStation = optionalGasStation.get();
 
         // Verificar si el trabajador ya existe con estado ACTIVE
         Optional<GasStationWorker> existingWorker = gasStationWorkerRepository.findByIdentification(gasStationWorkerRequest.identification());
         if (existingWorker.isPresent() && existingWorker.get().getState() == State.ACTIVE) {
-            System.out.println("El trabajador ya existe y está activo.");
-            return null;
+            throw new RuntimeException("El trabajador ya existe y está activo.");
+
         }
 
         // Verificar si el trabajador ya existe en la gasolinera
@@ -273,7 +273,7 @@ public class GasStationWorkerServiceImpl {
             GasStationWorker existingWorkerInStation = existingInStation.get();
 
             if (existingWorkerInStation.getState() == State.ACTIVE) {
-                throw new IllegalStateException("El trabajador ya está asignado y activo en la gasolinera.");
+                throw new RuntimeException("El trabajador ya está asignado y activo en la gasolinera.");
             } else if (existingWorkerInStation.getState() == State.INACTIVE) {
                 // Actualizar trabajador inactivo a activo
                 existingWorkerInStation.setState(State.ACTIVE);
@@ -306,13 +306,17 @@ public class GasStationWorkerServiceImpl {
 
     public GasStationWorkerResponse updateGasStationWorkerWithImage(GasStationWorkerRequest gasStationWorkerRequest, MultipartFile image, Long idGasolinera, Long idTrabajador) throws IOException {
 
-        if (image == null || image.isEmpty()) {
-            System.out.println("La imagen no puede ser nula o vacía");
-            return null;
-        }
+
 
         if (idGasolinera == null || idTrabajador == null) {
-            System.out.println("Las ids del worker y de la estación no pueden ser nulas ");
+            throw new RuntimeException("Las ids del worker y de la estación no pueden ser nulas ");
+        }
+
+        // Verificar si la gasolinera existe y está activa
+        Optional<GasStation> optionalGasStation = gasStationRepository.findById(idGasolinera);
+        if (optionalGasStation.isEmpty() || optionalGasStation.get().getState() != State.ACTIVE) {
+            throw new RuntimeException("La gasolinera no existe o no está activa.");
+
         }
 
         Optional<GasStationWorker> worker = gasStationWorkerRepository.findById(idTrabajador);
@@ -324,9 +328,14 @@ public class GasStationWorkerServiceImpl {
         } else if (idGasStation instanceof Integer) {
             idGas = ((Integer) idGasStation).longValue(); // Convertir Integer a Long
         } else {
-            throw new IllegalArgumentException("El tipo de idGasStation no es compatible: " + idGasStation.getClass());
+            throw new RuntimeException("El tipo de idGasStation no es compatible: " + idGasStation.getClass());
         }
         Optional<GasStation> gs = gasStationRepository.findById(idGas);
+
+        if (image == null || image.isEmpty()) {
+            throw new RuntimeException("La imagen no puede ser nula o vacía");
+
+        }
 
         if (worker.isPresent() && gs.isPresent() && worker.get().getId() == idGasolinera) {
 
@@ -346,11 +355,11 @@ public class GasStationWorkerServiceImpl {
                 return new GasStationWorkerResponse(w.getId(), w.getIdentification(), w.getName(), w.getPhone(), w.getImage(), gas.getName());
             }
 
-            System.out.println("Trabajador inactivo ");
-            return null;
+            throw new RuntimeException("Trabajador inactivo");
+
         }
-        System.out.println("Este worker no existe o no hay gasStation ");
-        return null;
+        throw new RuntimeException("Este worker no existe o no hay gasStation ");
+
     }
 
     private GasStationWorkerResponse saveAndConvertResponse(GasStationWorker worker) {

@@ -20,6 +20,11 @@ public interface OwnerRepository extends CrudRepository<Owner, Long> {
     boolean existsByGasStationsIdAndId(@Param("gasStationId") Long gasStationId, @Param("ownerId") Long ownerId);
 
 
+    @Query("SELECT o.id FROM Owner o WHERE o.user.email = :email")
+    Long getOwnerIdByEmail(@Param("email") String email);
+
+
+
 
 
 }

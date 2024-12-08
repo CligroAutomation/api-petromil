@@ -48,8 +48,9 @@ public class OwnerServiceImpl{
         Optional<UserEntity> existingUserByIdentification = userRepository.findUserEntityByIdentification(ownerResponse.identification());
 
         if (existingUserByIdentification.isPresent()) {
-            // Lanzar una excepción con un mensaje específico si la identificación ya existe
-            return null;
+
+            throw new RuntimeException("No puedes agregar dos usuarios con la misma cedula");
+
         }
 
 
@@ -183,7 +184,8 @@ public class OwnerServiceImpl{
             Owner own = o.get();
 
             if(own.getUser().getState() == State.INACTIVE){
-                return null;
+                throw new RuntimeException("propietario con estado inactivo");
+
             }
 
                 // Asignamos los datos de Owner solo si user.getOwner() no es null
@@ -198,12 +200,12 @@ public class OwnerServiceImpl{
                 );
                 return owr; // Retornamos el objeto OwnerResponse
 
-        } else {
-            // El usuario no fue encontrado
-            System.out.println("Usuario no encontrado");
         }
+            // El usuario no fue encontrado
+            throw new RuntimeException("propietario no encontrado");
 
-        return null; // Retorna null si no se encuentra un owner o no es admin
+
+        // Retorna null si no se encuentra un owner o no es admin
     }
 
 
@@ -212,7 +214,8 @@ public class OwnerServiceImpl{
 
 
         if(idPropietario == null){
-            return null;
+            throw new RuntimeException("Id del propietario no puede ser nula");
+
 
         }
 
@@ -221,21 +224,30 @@ public class OwnerServiceImpl{
 
         if(!owner.isPresent()){
             System.out.println("Este propietario no existe");
-            return null;
+            throw new RuntimeException("Este propietario no existe");
 
         }
         Owner own = owner.get();
 
-        Optional<UserEntity> user = userRepository.findUserEntityByIdentification(ownerResponse.identification());
-        if(user.isPresent()){
-            System.out.println("La identificación que quieres agregar, ya existe. No puedes agregar dos usuarios con la misma cédula");
-            return null;
+
+        if(own.getUser().getState() == State.INACTIVE){
+            throw new RuntimeException("El propietario el cual intentas editar, está inactivo");
 
         }
 
 
-        if(own.getUser().getState() == State.INACTIVE){
-            return  null;
+        if(own.getUser().getEmail() != ownerResponse.email()){
+            System.out.println("email diferente");
+
+            own.setUser(own.getUser());
+            own.setName(ownerResponse.name());
+            own.setPhone(ownerResponse.phone());
+            own.getUser().setIdentification(ownerResponse.identification());
+            //Seteando la nueva contraseña
+            own.getUser().setPassword(passwordEncoder.encode(ownerResponse.password()));
+            own.getUser().setEmail(ownerResponse.email());
+            ownerRepository.save(own);
+
         }
 
         own.setUser(own.getUser());
@@ -244,10 +256,8 @@ public class OwnerServiceImpl{
         own.getUser().setIdentification(ownerResponse.identification());
         //Seteando la nueva contraseña
         own.getUser().setPassword(passwordEncoder.encode(ownerResponse.password()));
-        own.getUser().setEmail(ownerResponse.email());
-
-
         ownerRepository.save(own);
+
 
         return new OwnerResponse(
                         own.getId(),
@@ -267,14 +277,14 @@ public class OwnerServiceImpl{
 
 
         if(!owner.isPresent()){
-            System.out.println("La id de este propietario no existe");
-            return null;
+            throw new RuntimeException("El propietario el cual intentas eliminar no existe");
+
 
         }
         Owner own = owner.get();
 
         if(own.getUser().getState() == State.INACTIVE){
-            return null;
+            throw new RuntimeException("El propietario el cual intentas eliminar no existe || ya está inactivo");
         }
 
         UserEntity user = own.getUser();
@@ -293,7 +303,7 @@ public class OwnerServiceImpl{
         List<Owner> owners = ownerRepository.findByUserState(State.ACTIVE);
 
         if (owners.isEmpty()) {
-            return null;
+            throw new RuntimeException("No hay propietarios activos");
         }
 
         return owners;

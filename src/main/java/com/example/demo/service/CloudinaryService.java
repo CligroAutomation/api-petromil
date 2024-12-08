@@ -17,7 +17,14 @@ public class CloudinaryService {
 
     public String uploadImage(MultipartFile file) throws IOException {
         @SuppressWarnings("rawtypes")
-        Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
-        return uploadResult.get("url").toString(); // Devuelve la URL pública de la imagen
+        Map uploadResult = cloudinary.uploader().upload(
+                file.getBytes(),
+                ObjectUtils.asMap(
+                        "transformation", new com.cloudinary.Transformation()
+                                .width(500)
+                                .height(500)
+                                .crop("fill")
+                                .gravity("auto")));
+        return uploadResult.get("url").toString();
     }
 }

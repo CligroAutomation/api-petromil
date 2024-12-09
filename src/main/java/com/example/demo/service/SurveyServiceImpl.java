@@ -140,7 +140,8 @@ public class SurveyServiceImpl {
                             survey.getId(),
                             survey.getRating(),
                             survey.getComment(),
-                            survey.getDateTime()))
+                            survey.getDateTime(),
+                            survey.getGasStationWorker().getId()))
                     .collect(Collectors.toList());
 
             return new SurveyGasStationResponse(GasStationDTO, surveyDTO);

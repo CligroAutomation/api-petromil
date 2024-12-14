@@ -1,17 +1,17 @@
 package com.example.demo.config.controller;
 
 import com.example.demo.dao.OwnerRepository;
-import com.example.demo.domain.dto.GasStationResponse;
-import com.example.demo.domain.dto.GasStationsByOwnerResponse;
-import com.example.demo.domain.dto.GlobalErrorResponse;
-import com.example.demo.domain.dto.GlobalSuccessResponse;
+import com.example.demo.domain.dto.*;
 import com.example.demo.service.GasStationServiceImpl;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
 
@@ -26,13 +26,21 @@ public class GasStationController {
     private OwnerRepository ownerRepository;
 
     @PostMapping("/{idOwner}/gasolineras")
-    public ResponseEntity<?> postGasStation(@RequestBody @Valid GasStationResponse gasStationResponse,
-            @PathVariable Long idOwner) {
+    public ResponseEntity<?> postGasStation(
+            //@RequestBody @Valid GasStationResponse gasStationResponse,
+            @RequestParam("name") String name,
+            @RequestParam("address") String address,
+            @RequestParam("logo") MultipartFile logo,
+            @RequestParam("banner") MultipartFile banner,
+            @RequestParam("hexadecimalColor") String hexadecimalColor,
+            @PathVariable Long idOwner) throws IOException {
+
+        GasStationRequest request = new GasStationRequest(name, address);
 
         System.out.println("Entro al controlador post");
 
         GlobalSuccessResponse<?> response;
-        GasStationResponse gasStation = gasStationService.createGasStation(gasStationResponse, idOwner);
+        GasStationResponse gasStation = gasStationService.createGasStation(request, idOwner, logo, banner, hexadecimalColor);
 
         response = new GlobalSuccessResponse<>(
                 true,
@@ -43,7 +51,7 @@ public class GasStationController {
     }
 
     @GetMapping("/{idOwner}/gasolineras")
-    public ResponseEntity<?> getGasStationsByIdOwner(@PathVariable Long idOwner, Principal principal) {
+    public ResponseEntity<?> getGasStationsByIdOwner(@PathVariable Long idOwner, Principal principal, Pageable pageable) {
 
         System.out.println("Valor de principal.getName(): " + principal.getName());
 
@@ -58,7 +66,7 @@ public class GasStationController {
         }
 
         GlobalSuccessResponse<?> response;
-        List<GasStationsByOwnerResponse> gasStations = gasStationService.getGasStationByOwner(idOwner);
+        List<GasStationsByOwnerResponse> gasStations = gasStationService.getGasStationByOwner(idOwner, pageable);
 
         response = new GlobalSuccessResponse<>(
                 true,
@@ -69,9 +77,9 @@ public class GasStationController {
     }
 
     @GetMapping("/gasolineras")
-    public ResponseEntity<?> getAllGasStation() {
+    public ResponseEntity<?> getAllGasStation(Pageable pageable) {
 
-        List<GasStationsByOwnerResponse> gasStations = gasStationService.getAllGasStation();
+        List<GasStationsByOwnerResponse> gasStations = gasStationService.getAllGasStation(pageable);
         GlobalSuccessResponse<?> response;
 
         response = new GlobalSuccessResponse<>(
@@ -83,8 +91,18 @@ public class GasStationController {
     }
 
     @PutMapping("/{idPropietario}/gasolineras/{idGasolinera}")
-    public ResponseEntity<?> editGasStation(@RequestBody @Valid GasStationResponse gasStationResponse,
-            @PathVariable Long idPropietario, @PathVariable Long idGasolinera, Principal principal) {
+    public ResponseEntity<?> editGasStation(
+            //@RequestBody @Valid GasStationResponse gasStationResponse,
+            @RequestParam("name") String name,
+            @RequestParam("address") String address,
+            @RequestParam("logo") MultipartFile logo,
+            @RequestParam("banner") MultipartFile banner,
+            @RequestParam("hexadecimalColor") String hexadecimalColor,
+            @PathVariable Long idPropietario,
+            @PathVariable Long idGasolinera, Principal principal) throws IOException {
+
+        System.out.println("ENTRO AL CONTROLADOR PUT MAPPING GAS STATION");
+
 
         System.out.println("Valor de principal.getName(): " + principal.getName());
         Long authenticatedOwnerId = ownerRepository.getOwnerIdByEmail(principal.getName());
@@ -97,8 +115,10 @@ public class GasStationController {
         }
 
         System.out.println("Entrar al controlador");
+
+        GasStationRequest gs = new GasStationRequest(name, address);
         GlobalSuccessResponse<?> response;
-        GasStationsByOwnerResponse gasStations = gasStationService.updateGasStation(gasStationResponse, idPropietario,
+        GasStationsByOwnerResponse gasStations = gasStationService.updateGasStation(gs,logo, banner, hexadecimalColor, idPropietario,
                 idGasolinera);
 
         response = new GlobalSuccessResponse<>(

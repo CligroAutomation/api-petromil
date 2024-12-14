@@ -1,6 +1,8 @@
 package com.example.demo.domain;
 
 
+import com.example.demo.config.auditor.Auditable;
+import com.example.demo.enums.Rating;
 import com.example.demo.enums.State;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -14,7 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 @Table(name = "gasStationWorkers")
-public class GasStationWorker {
+public class GasStationWorker extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -56,7 +58,6 @@ public class GasStationWorker {
     private List<Survey> surveys = new ArrayList<>();
 
 
-
     public GasStationWorker(Long aLong, String identification, String name, String phone, String imageUrl, State state, GasStation gasStation) {
         this.id= aLong;
         this.identification = identification;
@@ -65,5 +66,9 @@ public class GasStationWorker {
         this.image = imageUrl;
         this.state = state;
         this.gasStation = gasStation;
+
     }
+
+
+
 }

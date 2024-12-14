@@ -1,5 +1,6 @@
 package com.example.demo.domain;
 
+import com.example.demo.config.auditor.Auditable;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -10,7 +11,7 @@ import lombok.*;
 @NoArgsConstructor
 @Entity
 @Table(name = "permissions")
-public class Permission {
+public class Permission extends Auditable {
 
     //Id
     @Id

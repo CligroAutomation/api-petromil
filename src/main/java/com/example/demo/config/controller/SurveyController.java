@@ -8,6 +8,7 @@ import com.example.demo.domain.GasStationWorker;
 import com.example.demo.domain.dto.*;
 import com.example.demo.service.SurveyServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -48,7 +49,7 @@ public class SurveyController {
     }
 
     @GetMapping("/trabajadores/{idTrabajador}")
-    public ResponseEntity<?> getSurveyByIdGasStationWorker(@PathVariable Long idTrabajador, Principal principal) {
+    public ResponseEntity<?> getSurveyByIdGasStationWorker(@PathVariable Long idTrabajador, Principal principal, Pageable pageable) {
 
         System.out.println("Controlador getSurveyByIdGasStationWorker ");
 
@@ -84,7 +85,7 @@ public class SurveyController {
         }
 
         // Si es ADMIN o tiene permisos, obtener las encuestas del trabajador
-        SurveyGasStationWorkerResponse survey = surveyService.getSurveyByIdGasStationWorker(idTrabajador);
+        SurveyGasStationWorkerResponse survey = surveyService.getSurveyByIdGasStationWorker(idTrabajador, pageable);
 
         // Respuesta exitosa
         response = new GlobalSuccessResponse<>(
@@ -95,8 +96,9 @@ public class SurveyController {
     }
 
     @GetMapping("/gasolineras/{idGasStation}")
-    public ResponseEntity<?> getSurveyByIdGasStation(@PathVariable Long idGasStation, Principal principal) {
+    public ResponseEntity<?> getSurveyByIdGasStation(@PathVariable Long idGasStation, Principal principal, Pageable pageable) {
 
+        System.out.println(pageable);
         System.out.println("Controlador getSurveyByIdGasStation");
 
         GlobalSuccessResponse<?> response;
@@ -128,7 +130,7 @@ public class SurveyController {
         }
 
         // Si es ADMIN o tiene permisos, obtener las encuestas de la gasolinera
-        SurveyGasStationResponse survey = surveyService.getSurveyByIdGasStation(idGasStation);
+        SurveyGasStationResponse survey = surveyService.getSurveyByIdGasStation(idGasStation, pageable);
 
         // Respuesta exitosa
         response = new GlobalSuccessResponse<>(

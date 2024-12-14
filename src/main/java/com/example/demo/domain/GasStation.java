@@ -1,5 +1,6 @@
 package com.example.demo.domain;
 
+import com.example.demo.config.auditor.Auditable;
 import com.example.demo.enums.State;
 import jakarta.persistence.*;
 import lombok.*;
@@ -14,7 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 @Table(name = "gasstations")
-public class GasStation {
+public class GasStation extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,7 +41,32 @@ public class GasStation {
     @OneToMany(mappedBy = "gasStation", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Survey> surveys = new ArrayList<>();
 
+
+    //Images
+
+    @Column(name = "logo")
+    private String logo = ""; // Atributo para almacenar la imagen
+
+    @Column(name = "banner")
+    private String banner = "";
+
+    @Column(name = "hexadecimalColor")
+    private String hexadecimalColor = "";
+
     // Constructor personalizado
+    public GasStation(Long id, String name, String address, Owner owner, State state, String logo, String banner, String hexadecimalColor) {
+        this.id = id;
+        this.name = name;
+        this.address = address;
+        this.owner = owner;
+        this.state = state;
+        this.logo = logo;
+        this.banner = banner;
+        this.hexadecimalColor = hexadecimalColor;
+
+
+    }
+
     public GasStation(Long id, String name, String address, Owner owner, State state) {
         this.id = id;
         this.name = name;

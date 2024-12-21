@@ -8,6 +8,7 @@ import com.example.demo.domain.dto.OwnerResponse;
 import com.example.demo.service.OwnerServiceImpl;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -97,10 +98,11 @@ public class OwnerController {
         }
 
         @GetMapping
-        public ResponseEntity<?> getAllOwnerByUserState() {
-
+        public ResponseEntity<?> getAllOwnerByUserState(Pageable pageable) {
                 // Asegúrate de que getAllOwnerByUserState nunca devuelva null
-                List<Owner> owners = ownerService.getAllOwnerByUserState();
+
+                System.out.println("Entro al controlador getAllOwnerByUserState ");
+                List<Owner> owners = ownerService.getAllOwnerByUserState(pageable);
                 GlobalSuccessResponse<?> response;
 
                 // Transformar los objetos Owner a OwnerResponse

@@ -15,6 +15,8 @@ import com.example.demo.enums.State;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.*;
 
@@ -42,7 +44,7 @@ public class OwnerServiceImpl {
         Optional<UserEntity> existingUserByIdentification = userRepository
                 .findUserEntityByIdentification(ownerResponse.identification());
 
-        if (existingUserByIdentification.isPresent()) {
+        if (existingUserByIdentification.isPresent() && existingUserByIdentification.get().getState() == State.ACTIVE) {
 
             throw new RuntimeException("No puedes agregar dos usuarios con la misma cedula");
 
@@ -271,9 +273,14 @@ public class OwnerServiceImpl {
 
     }
 
-    public List<Owner> getAllOwnerByUserState() {
+    public List<Owner> getAllOwnerByUserState(Pageable pageable) {
 
-        List<Owner> owners = ownerRepository.findByUserState(State.ACTIVE);
+        Page<Owner> ownersPage = ownerRepository.findByUserState(State.ACTIVE, pageable);
+
+        System.out.println(ownersPage.getContent());
+
+        List<Owner> owners = ownersPage.getContent();
+
 
         if (owners.isEmpty()) {
             throw new RuntimeException("No hay propietarios activos");
@@ -282,5 +289,7 @@ public class OwnerServiceImpl {
         return owners;
 
     }
+
+
 
 }

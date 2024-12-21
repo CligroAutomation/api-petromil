@@ -1,5 +1,6 @@
 package com.example.demo.domain;
 
+import com.example.demo.config.auditor.Auditable;
 import com.example.demo.enums.State;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -17,7 +18,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Entity
 @Table(name = "users")
-public class UserEntity {
+public class UserEntity extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

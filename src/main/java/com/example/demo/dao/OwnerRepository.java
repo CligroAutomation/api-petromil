@@ -2,17 +2,20 @@ package com.example.demo.dao;
 
 import com.example.demo.domain.Owner;
 import com.example.demo.enums.State;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
+import java.io.Serializable;
 import java.util.List;
 
-public interface OwnerRepository extends CrudRepository<Owner, Long> {
+public interface OwnerRepository extends JpaRepository<Owner, Long>{
 
     Owner findOwnerByName(String name);
 
-    List<Owner> findByUserState(State state);
+    Page<Owner> findByUserState(State state, Pageable pageable);
 
     boolean existsByGasStationsId(Long gasStationId);
 

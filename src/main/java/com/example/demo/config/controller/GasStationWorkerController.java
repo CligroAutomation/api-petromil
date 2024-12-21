@@ -11,6 +11,7 @@ import com.example.demo.domain.dto.GlobalErrorResponse;
 import com.example.demo.domain.dto.GlobalSuccessResponse;
 import com.example.demo.service.GasStationWorkerServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -86,13 +87,13 @@ public class GasStationWorkerController {
         }
 
         @GetMapping("/{idGasolinera}/trabajadores")
-        public ResponseEntity<?> getWorkersByIdGasStation(@PathVariable Long idGasolinera) {
+        public ResponseEntity<?> getWorkersByIdGasStation(@PathVariable Long idGasolinera, Pageable pageable) {
 
                 System.out.println("Entró al controlador getWorkersByIdGasStation");
                 GlobalSuccessResponse<?> response;
 
                 List<GasStationWorkerResponse> gasStationWorkerf = gasStationWorkerService
-                                .getAllWorkersByIdGasStation(idGasolinera);
+                                .getAllWorkersByIdGasStation(idGasolinera, pageable);
 
                 response = new GlobalSuccessResponse<>(
                                 true,

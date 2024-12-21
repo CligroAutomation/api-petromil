@@ -1,5 +1,6 @@
 package com.example.demo.domain;
 
+import com.example.demo.config.auditor.Auditable;
 import com.example.demo.enums.RoleEnum;
 import jakarta.persistence.*;
 import lombok.*;
@@ -14,7 +15,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Entity
 @Table(name = "roles")
-public class Role {
+public class Role extends Auditable {
 
     // Id
     @Id

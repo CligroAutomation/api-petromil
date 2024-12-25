@@ -11,8 +11,11 @@ import com.example.demo.domain.dto.SurveyGasStationWorkerResponse;
 import com.example.demo.domain.dto.SurveyRequest;
 import com.example.demo.enums.State;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -66,19 +69,25 @@ public class SurveyServiceImpl {
         survey.setGasStation(gs);
         survey.setRating(surveyRequest.rating());
         survey.setComment(surveyRequest.comment());
-
+        survey.setElectronicDevice(surveyRequest.electronicDevice());
+        // survey.setDateTime(LocalDateTime.now());
+        // gsw.updatePerformanceScore();
+        // gasStationWorkerRepository.save(gsw);
         surveyRepository.save(survey);
         return surveyRequest;
 
     }
 
-    public SurveyGasStationWorkerResponse getSurveyByIdGasStationWorker(Long idGasStationWorker) {
+    public SurveyGasStationWorkerResponse getSurveyByIdGasStationWorker(Long idGasStationWorker, Pageable pageable) {
 
         Optional<GasStationWorker> gasStationWorkerOptional = gasStationWorkerRepository.findById(idGasStationWorker);
+
         if (gasStationWorkerOptional.isPresent()) {
             GasStationWorker gasStationWorker = gasStationWorkerOptional.get();
 
-            List<Survey> surveyList = surveyRepository.findByGasStationWorker(gasStationWorker);
+            Page<Survey> surveyPage = surveyRepository.findByGasStationWorker(gasStationWorker, pageable);
+
+            List<Survey> surveyList = surveyPage.getContent();
 
             if (gasStationWorker.getState() == State.INACTIVE) {
                 throw new RuntimeException("Este trabajador está inactiva");
@@ -94,7 +103,7 @@ public class SurveyServiceImpl {
                     gasStationWorker.getId(),
                     gasStationWorker.getName());
 
-            List<SurveyGasStationWorkerResponse.SurveyDTO> surveyDTO = gasStationWorker.getSurveys()
+            List<SurveyGasStationWorkerResponse.SurveyDTO> surveyDTO = surveyList
                     .stream()
                     .map(survey -> new SurveyGasStationWorkerResponse.SurveyDTO(
                             survey.getId(),
@@ -111,7 +120,7 @@ public class SurveyServiceImpl {
 
     }
 
-    public SurveyGasStationResponse getSurveyByIdGasStation(Long idGasStation) {
+    public SurveyGasStationResponse getSurveyByIdGasStation(Long idGasStation, Pageable pageable) {
 
         Optional<GasStation> gasStationWorkerOptional = gasStationRepository.findById(idGasStation);
         if (gasStationWorkerOptional.isPresent()) {
@@ -123,7 +132,9 @@ public class SurveyServiceImpl {
 
             }
 
-            List<Survey> surveyList = surveyRepository.findByGasStation(gasStation);
+            Page<Survey> surveyPage = surveyRepository.findByGasStation(gasStation, pageable);
+
+            List<Survey> surveyList = surveyPage.getContent();
 
             if (surveyList.isEmpty()) {
                 throw new RuntimeException("Este gasolinera no tiene  encuestas");
@@ -134,12 +145,13 @@ public class SurveyServiceImpl {
                     gasStation.getId(),
                     gasStation.getName());
 
-            List<SurveyGasStationResponse.SurveyDTO> surveyDTO = gasStation.getSurveys()
+            List<SurveyGasStationResponse.SurveyDTO> surveyDTO = surveyList
                     .stream()
                     .map(survey -> new SurveyGasStationResponse.SurveyDTO(
                             survey.getId(),
                             survey.getRating(),
                             survey.getComment(),
+                            survey.getGasStationWorker().getName(),
                             survey.getDateTime(),
                             survey.getGasStationWorker().getId()))
                     .collect(Collectors.toList());

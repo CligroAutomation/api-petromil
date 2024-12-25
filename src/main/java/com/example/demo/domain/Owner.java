@@ -1,5 +1,6 @@
 package com.example.demo.domain;
 
+import com.example.demo.config.auditor.Auditable;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -14,7 +15,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Entity
 @Table(name = "owners")
-public class Owner {
+public class Owner extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

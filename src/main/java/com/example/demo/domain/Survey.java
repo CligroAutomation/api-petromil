@@ -1,5 +1,6 @@
 package com.example.demo.domain;
 
+import com.example.demo.config.auditor.Auditable;
 import com.example.demo.enums.Rating;
 import jakarta.persistence.*;
 import lombok.*;
@@ -12,7 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Entity
 @Table(name = "surveys")
-public class Survey {
+public class Survey extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,6 +36,9 @@ public class Survey {
 
     @Column(nullable = false)
     private LocalDateTime dateTime;
+
+    @Column(name = "electronicDevice", nullable = false)
+    private String electronicDevice;
 
     public Survey() {
         this.dateTime = LocalDateTime.now();

@@ -18,6 +18,7 @@ public record SurveyGasStationResponse(
                         Long idSurvey,
                         Rating rating,
                         String comment,
+                        String gasStationWorkerName,
                         LocalDateTime localDateTime,
                         Long idGasStationWorker) {
         }

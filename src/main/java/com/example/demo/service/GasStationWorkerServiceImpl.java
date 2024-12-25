@@ -8,6 +8,8 @@ import com.example.demo.domain.dto.GasStationWorkerRequest;
 import com.example.demo.domain.dto.GasStationWorkerResponse;
 import com.example.demo.enums.State;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -127,7 +129,7 @@ public class GasStationWorkerServiceImpl {
 
     }
 
-    public List<GasStationWorkerResponse> getAllWorkersByIdGasStation(Long gasStationId) {
+    public List<GasStationWorkerResponse> getAllWorkersByIdGasStation(Long gasStationId, Pageable pageable) {
 
         if (gasStationId == null) {
             throw new RuntimeException("La id no puede estar vacía");
@@ -140,8 +142,10 @@ public class GasStationWorkerServiceImpl {
         }
 
         // Obtiene los trabajadores activos de la gasolinera
-        List<GasStationWorkerResponse> workers = gasStationWorkerRepository
-                .findWorkersByGasStationIdAndState(gasStationId, State.ACTIVE);
+        Page<GasStationWorkerResponse> workersPage = gasStationWorkerRepository
+                .findWorkersByGasStationIdAndState(gasStationId, State.ACTIVE, pageable);
+
+        List<GasStationWorkerResponse> workers = workersPage.getContent();
 
         if (workers.isEmpty()) {
             throw new RuntimeException("No hay trabajadores en esta gasolinera");
@@ -327,19 +331,52 @@ public class GasStationWorkerServiceImpl {
         }
         Optional<GasStation> gs = gasStationRepository.findById(idGas);
 
-        if (image == null || image.isEmpty()) {
-            throw new RuntimeException("La imagen no puede ser nula o vacía");
+        if (image == null || image.isEmpty() && !gasStationWorkerRequest.name().equals("")
+                && !gasStationWorkerRequest.identification().equals("")
+                && !gasStationWorkerRequest.phone().equals("")) {
+
+            if (worker.isPresent() && gs.isPresent() && worker.get().getId() == idTrabajador) {
+
+                GasStationWorker w = worker.get();
+                GasStation gas = gs.get();
+
+                if (w.getState() == State.ACTIVE) {
+
+                    w.setId(idTrabajador);
+                    w.setName(gasStationWorkerRequest.name());
+                    w.setIdentification(gasStationWorkerRequest.identification());
+                    w.setPhone(gasStationWorkerRequest.phone());
+                    w.setGasStation(gas);
+                    // w.setImage(cloudinaryService.uploadImage(image));
+                    gasStationWorkerRepository.save(w);
+                    gasStationRepository.save(gas);
+                    return new GasStationWorkerResponse(w.getId(), w.getIdentification(), w.getName(), w.getPhone(),
+                            w.getImage(), gas.getName());
+                }
+
+                throw new RuntimeException("Trabajador inactivo");
+
+            }
 
         }
 
-        if (worker.isPresent() && gs.isPresent() && worker.get().getId() == idGasolinera) {
+        if (gasStationWorkerRequest.name().equals("") || gasStationWorkerRequest.identification().equals("")
+                || gasStationWorkerRequest.phone().equals("") || image.isEmpty()) {
+            throw new RuntimeException("Ingresa todos los datos");
+        }
+
+        if (image == null || image.isEmpty()) {
+            throw new RuntimeException("La imagen no puede ser estar nula o vacía");
+        }
+
+        if (worker.isPresent() && gs.isPresent() && worker.get().getId() == idTrabajador) {
 
             GasStationWorker w = worker.get();
             GasStation gas = gs.get();
 
             if (w.getState() == State.ACTIVE) {
 
-                w.setId(idGasolinera);
+                w.setId(idTrabajador);
                 w.setName(gasStationWorkerRequest.name());
                 w.setIdentification(gasStationWorkerRequest.identification());
                 w.setPhone(gasStationWorkerRequest.phone());

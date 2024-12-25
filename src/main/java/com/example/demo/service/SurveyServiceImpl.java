@@ -70,9 +70,9 @@ public class SurveyServiceImpl {
         survey.setRating(surveyRequest.rating());
         survey.setComment(surveyRequest.comment());
         survey.setElectronicDevice(surveyRequest.electronicDevice());
-        //survey.setDateTime(LocalDateTime.now());
-        //gsw.updatePerformanceScore();
-        //gasStationWorkerRepository.save(gsw);
+        // survey.setDateTime(LocalDateTime.now());
+        // gsw.updatePerformanceScore();
+        // gasStationWorkerRepository.save(gsw);
         surveyRepository.save(survey);
         return surveyRequest;
 
@@ -151,6 +151,7 @@ public class SurveyServiceImpl {
                             survey.getId(),
                             survey.getRating(),
                             survey.getComment(),
+                            survey.getGasStationWorker().getName(),
                             survey.getDateTime(),
                             survey.getGasStationWorker().getId()))
                     .collect(Collectors.toList());

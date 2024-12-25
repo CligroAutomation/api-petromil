@@ -30,6 +30,6 @@ public interface GasStationRepository extends JpaRepository<GasStation, Long> {
 
     GasStation findByOwnerAndNameAndAddress(Owner owner, String name, String address);
 
-    @Query("SELECT COUNT(g) FROM GasStation g WHERE g.state = com.example.demo.enums.State.ACTIVE")
+    @Query("SELECT COUNT(g) FROM GasStation g WHERE g.state = 0")
     Long countAllGasStations();
 }

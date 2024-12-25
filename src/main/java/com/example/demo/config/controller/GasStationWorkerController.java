@@ -94,11 +94,12 @@ public class GasStationWorkerController {
 
                 List<GasStationWorkerResponse> gasStationWorkerf = gasStationWorkerService
                                 .getAllWorkersByIdGasStation(idGasolinera, pageable);
+                Long totalWorkers = gasStationWorkerRepository.countAllWorkers(idGasolinera);
 
                 response = new GlobalSuccessResponse<>(
                                 true,
                                 "Trabajadores obtenidos correctamente",
-                                gasStationWorkerf);
+                                gasStationWorkerf, totalWorkers);
                 return new ResponseEntity<>(response, HttpStatus.OK);
 
         }

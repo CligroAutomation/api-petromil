@@ -5,6 +5,7 @@ import com.example.demo.dao.UserRepository;
 import com.example.demo.domain.Owner;
 import com.example.demo.domain.dto.GlobalSuccessResponse;
 import com.example.demo.domain.dto.OwnerResponse;
+import com.example.demo.enums.State;
 import com.example.demo.service.OwnerServiceImpl;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -103,6 +104,7 @@ public class OwnerController {
 
                 System.out.println("Entro al controlador getAllOwnerByUserState ");
                 List<Owner> owners = ownerService.getAllOwnerByUserState(pageable);
+                Number total = ownerRepository.countActiveOwners(State.ACTIVE);
                 GlobalSuccessResponse<?> response;
 
                 // Transformar los objetos Owner a OwnerResponse
@@ -119,7 +121,7 @@ public class OwnerController {
                 response = new GlobalSuccessResponse<>(
                                 true,
                                 "Dueños obtenidos correctamente",
-                                ownersResponse);
+                                ownersResponse, total);
 
                 return new ResponseEntity<>(response, HttpStatus.OK);
         }

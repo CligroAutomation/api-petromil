@@ -11,7 +11,7 @@ import org.springframework.data.domain.Pageable;
 import java.io.Serializable;
 import java.util.List;
 
-public interface OwnerRepository extends JpaRepository<Owner, Long>{
+public interface OwnerRepository extends JpaRepository<Owner, Long> {
 
     Owner findOwnerByName(String name);
 
@@ -22,12 +22,10 @@ public interface OwnerRepository extends JpaRepository<Owner, Long>{
     @Query("SELECT COUNT(g) > 0 FROM Owner o JOIN o.gasStations g WHERE o.id = :ownerId AND g.id = :gasStationId")
     boolean existsByGasStationsIdAndId(@Param("gasStationId") Long gasStationId, @Param("ownerId") Long ownerId);
 
-
     @Query("SELECT o.id FROM Owner o WHERE o.user.email = :email")
     Long getOwnerIdByEmail(@Param("email") String email);
 
-
-
-
+    @Query("SELECT COUNT(o) FROM Owner o WHERE o.user.state = :state")
+    Long countActiveOwners(@Param("state") State state);
 
 }

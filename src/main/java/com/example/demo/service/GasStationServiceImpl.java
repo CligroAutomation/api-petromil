@@ -33,10 +33,11 @@ public class GasStationServiceImpl {
     private CloudinaryService cloudinaryService;
 
     @Transactional
-    public GasStationResponse createGasStation(GasStationRequest gasStationRequest, Long idOwner, MultipartFile logo, MultipartFile banner, String hexadecimalColor) throws IOException {
+    public GasStationResponse createGasStation(GasStationRequest gasStationRequest, Long idOwner, MultipartFile logo,
+            MultipartFile banner, String hexadecimalColor) throws IOException {
         // Validar que el idOwner no sea nulo
 
-        if(logo == null || banner == null || hexadecimalColor == null){
+        if (logo == null || banner == null || hexadecimalColor == null) {
             throw new RuntimeException("Hay imagenes que faltan por adjuntar");
         }
 
@@ -44,7 +45,8 @@ public class GasStationServiceImpl {
             throw new RuntimeException("El ID del dueño no puede ser null.");
         }
 
-        if (logo.isEmpty() || logo == null || banner.isEmpty() || banner == null || hexadecimalColor == null || hexadecimalColor == "") {
+        if (logo.isEmpty() || logo == null || banner.isEmpty() || banner == null || hexadecimalColor == null
+                || hexadecimalColor == "") {
             throw new RuntimeException("Faltan configuraciones de diseño, por favor registra todos los datos");
         }
 
@@ -67,7 +69,8 @@ public class GasStationServiceImpl {
 
         if (exists) {
 
-            GasStation gs = gasStationRepository.findByNameAndAddress(gasStationRequest.name(), gasStationRequest.address());
+            GasStation gs = gasStationRepository.findByNameAndAddress(gasStationRequest.name(),
+                    gasStationRequest.address());
 
             if (gs.getState() == State.INACTIVE) {
 
@@ -98,7 +101,8 @@ public class GasStationServiceImpl {
                     String bannerImage = gs.getBanner();
 
                     // Retornar el DTO de GasStation con los datos requeridos
-                    return new GasStationResponse(gs.getId(), gs.getName(), gs.getAddress(), logeImagen, bannerImage, hexadecimalColor, gs.getOwner().getId());
+                    return new GasStationResponse(gs.getId(), gs.getName(), gs.getAddress(), logeImagen, bannerImage,
+                            hexadecimalColor, gs.getOwner().getId());
 
                 }
 
@@ -123,7 +127,8 @@ public class GasStationServiceImpl {
 
             gs.setState(State.ACTIVE);
             ownerRepository.save(owner); // Guardar al Owner con la nueva gasolinera
-            return new GasStationResponse(gs.getId(), gs.getName(), gs.getAddress(), gs.getLogo(), gs.getBanner(), gs.getHexadecimalColor(), owner.getId());
+            return new GasStationResponse(gs.getId(), gs.getName(), gs.getAddress(), gs.getLogo(), gs.getBanner(),
+                    gs.getHexadecimalColor(), owner.getId());
 
         }
 
@@ -137,10 +142,8 @@ public class GasStationServiceImpl {
         gasStation.setBanner(cloudinaryService.uploadImage(banner));
         gasStation.setHexadecimalColor(hexadecimalColor);
 
-        //String logeImagen = gasStation.getLogo();
-        //String bannerImage = gasStation.getBanner();
-
-
+        // String logeImagen = gasStation.getLogo();
+        // String bannerImage = gasStation.getBanner();
 
         // Guardar la nueva gasolinera en la base de datos
         gasStation = gasStationRepository.save(gasStation);
@@ -152,7 +155,7 @@ public class GasStationServiceImpl {
 
         // Retornar el DTO de GasStation con los datos requeridos
         return new GasStationResponse(gasStation.getId(), gasStation.getName(), gasStation.getAddress(),
-                gasStation.getLogo(), gasStation.getBanner(), gasStation.getHexadecimalColor(),  owner.getId());
+                gasStation.getLogo(), gasStation.getBanner(), gasStation.getHexadecimalColor(), owner.getId());
     }
 
     public List<GasStationsByOwnerResponse> getGasStationByOwner(Long id, Pageable pageable) {
@@ -171,7 +174,8 @@ public class GasStationServiceImpl {
         }
 
         // Busca las gasolineras del dueño
-        Page<GasStation> gasStationsPage = gasStationRepository.findByOwnerIdAndState(owner.getId(), State.ACTIVE, pageable);
+        Page<GasStation> gasStationsPage = gasStationRepository.findByOwnerIdAndState(owner.getId(), State.ACTIVE,
+                pageable);
 
         List<GasStation> gasStations = gasStationsPage.getContent();
         // Si el dueño no tiene gasolineras, retorna null
@@ -189,7 +193,10 @@ public class GasStationServiceImpl {
                             gs.getName(),
                             gs.getAddress(),
                             gs.getOwner().getName(),
-                            gs.getOwner().getId()));
+                            gs.getOwner().getId(),
+                            gs.getLogo(),
+                            gs.getBanner(),
+                            gs.getHexadecimalColor()));
         }
 
         return gasStationsResponse;
@@ -217,7 +224,10 @@ public class GasStationServiceImpl {
                             gs.getName(),
                             gs.getAddress(),
                             gs.getOwner().getName(),
-                            gs.getOwner().getId()));
+                            gs.getOwner().getId(),
+                            gs.getLogo(),
+                            gs.getBanner(),
+                            gs.getHexadecimalColor()));
         }
 
         return gasStationsByOwnerResponses;
@@ -225,8 +235,8 @@ public class GasStationServiceImpl {
     }
 
     public GasStationsByOwnerResponse updateGasStation(GasStationRequest gasStationRequest, MultipartFile logo,
-                                                       MultipartFile banner, String hexadecimalColor,
-                                                       Long idPropietario, Long idGasolinera) throws IOException {
+            MultipartFile banner, String hexadecimalColor,
+            Long idPropietario, Long idGasolinera) throws IOException {
 
         // Validación de entradas iniciales
         if (idPropietario == null || idGasolinera == null) {
@@ -254,12 +264,14 @@ public class GasStationServiceImpl {
             throw new RuntimeException("La gasolinera está inactiva");
         }
 
-        // Verificar si otra gasolinera con el mismo nombre y dirección ya existe para el propietario
+        // Verificar si otra gasolinera con el mismo nombre y dirección ya existe para
+        // el propietario
         boolean ownerHasGasStation = gasStationRepository.existsByOwnerAndNameAndAddress(owner,
                 gasStationRequest.name(), gasStationRequest.address());
 
         if (ownerHasGasStation && !existingGasStation.getId().equals(idGasolinera)) {
-            throw new RuntimeException("Ya existe una gasolinera con el mismo nombre y dirección para este propietario");
+            throw new RuntimeException(
+                    "Ya existe una gasolinera con el mismo nombre y dirección para este propietario");
         }
 
         // Actualización de campos
@@ -292,10 +304,11 @@ public class GasStationServiceImpl {
                 existingGasStation.getName(),
                 existingGasStation.getAddress(),
                 owner.getName(),
-                owner.getId()
-        );
+                owner.getId(),
+                existingGasStation.getLogo(),
+                existingGasStation.getBanner(),
+                existingGasStation.getHexadecimalColor());
     }
-
 
     public GasStationsByOwnerResponse deleteGasStation(Long idPropietario, Long idGasolinera) {
 
@@ -314,7 +327,8 @@ public class GasStationServiceImpl {
 
                 GasStationsByOwnerResponse response = new GasStationsByOwnerResponse(gs.getId(),
                         gs.getName(), gs.getAddress(),
-                        gs.getOwner().getName(), gs.getOwner().getId());
+                        gs.getOwner().getName(), gs.getOwner().getId(),
+                        gs.getLogo(), gs.getBanner(), gs.getHexadecimalColor());
                 return response;
 
             }

@@ -223,8 +223,6 @@ public class OwnerServiceImpl {
             own.setName(ownerResponse.name());
             own.setPhone(ownerResponse.phone());
             own.getUser().setIdentification(ownerResponse.identification());
-            // Seteando la nueva contraseña
-            own.getUser().setPassword(passwordEncoder.encode(ownerResponse.password()));
             own.getUser().setEmail(ownerResponse.email());
             ownerRepository.save(own);
 
@@ -234,8 +232,6 @@ public class OwnerServiceImpl {
         own.setName(ownerResponse.name());
         own.setPhone(ownerResponse.phone());
         own.getUser().setIdentification(ownerResponse.identification());
-        // Seteando la nueva contraseña
-        own.getUser().setPassword(passwordEncoder.encode(ownerResponse.password()));
         ownerRepository.save(own);
 
         return new OwnerResponse(
@@ -281,7 +277,6 @@ public class OwnerServiceImpl {
 
         List<Owner> owners = ownersPage.getContent();
 
-
         if (owners.isEmpty()) {
             throw new RuntimeException("No hay propietarios activos");
         }
@@ -289,7 +284,5 @@ public class OwnerServiceImpl {
         return owners;
 
     }
-
-
 
 }

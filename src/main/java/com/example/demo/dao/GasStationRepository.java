@@ -6,7 +6,9 @@ import com.example.demo.enums.State;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -27,4 +29,7 @@ public interface GasStationRepository extends JpaRepository<GasStation, Long> {
     GasStation findGasStationByNameAndAddressAndState(String name, String address, State state);
 
     GasStation findByOwnerAndNameAndAddress(Owner owner, String name, String address);
+
+    @Query("SELECT COUNT(g) FROM GasStation g WHERE g.state = com.example.demo.enums.State.ACTIVE")
+    Long countAllGasStations();
 }

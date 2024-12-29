@@ -161,11 +161,11 @@ public class GasStationController {
         }
 
 
-        @GetMapping("/{idPropietario}/top-gasolinera-mensual/{mes}/tipo-top/{top}")
-        public ResponseEntity<?> getBestGasStationInMonth(@PathVariable Long idPropietario, @PathVariable String mes, @PathVariable TopType top, Principal principal) {
+        @GetMapping("/{idOwner}/top-gasolinera-mensual/{mes}/tipo-top/{top}")
+        public ResponseEntity<?> getBestGasStationInMonth(@PathVariable Long idOwner, @PathVariable String mes, @PathVariable TopType top, Principal principal) {
 
                 GlobalSuccessResponse<?> response;
-                TopGasStationResponse topGasStation = gasStationService.getTopGasStation(idPropietario, mes, top);
+                TopGasStationResponse topGasStation = gasStationService.getTopGasStation(idOwner, mes, top);
 
                 response = new GlobalSuccessResponse<>(
                                 true,

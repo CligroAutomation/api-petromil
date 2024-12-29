@@ -1,5 +1,6 @@
 package com.example.demo.domain;
 
+import com.example.demo.enums.TopType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.Getter;
@@ -23,6 +24,10 @@ public class TopGasStation {
     @JoinColumn(name = "gas_station_id", nullable = false)
     private GasStation gasStation;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id", nullable = false)
+    private Owner owner; // Owner asociado destacado
+
     @Column(name = "performance_score")
     private Double performanceScore = 0.0; // Rendimiento del trabajador
 
@@ -35,13 +40,21 @@ public class TopGasStation {
     @Column(name = "comments_highlighted")
     private String commentsHighlighted = "";
 
-    public TopGasStation(String month, GasStation gasStation, Double performanceScore, Double averageScore, Integer badScores) {
+    @Column(name = "top_type")
+    private TopType topType;
+
+
+    public TopGasStation(String month, GasStation gasStation, Owner owner, Double performanceScore, Double averageScore, Integer badScores, TopType topType) {
         this.month = month;
         this.gasStation = gasStation;
+        this.owner = owner;
         this.performanceScore = performanceScore;
         this.averageScore = averageScore;
         this.badScores = badScores;
         this.commentsHighlighted = "";
+        this.topType = topType;
+
+
     }
 
     public TopGasStation(){

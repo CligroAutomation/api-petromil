@@ -41,8 +41,8 @@ public class TopWorkerScheduler {
 
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     @Transactional
-    //@Scheduled(cron = "0 * * * * ?") //cada minuto
-    @Scheduled(cron = "@monthly")
+    @Scheduled(cron = "0 * * * * ?") //cada minuto
+    //@Scheduled(cron = "@monthly")
     public void calculateTopWorkers() {
 
 

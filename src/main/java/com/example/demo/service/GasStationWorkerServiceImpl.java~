@@ -419,8 +419,6 @@ public class GasStationWorkerServiceImpl {
 
         LocalDateTime currentTime = LocalDateTime.now();
         LocalDateTime firstDayOfMonth = currentTime.withDayOfMonth(1).toLocalDate().atStartOfDay();
-
-
         // Obtener el nombre del mes en español (o cualquier otro idioma)
         String month = firstDayOfMonth.getMonth()
                 .getDisplayName(TextStyle.FULL, new Locale("es", "ES"));

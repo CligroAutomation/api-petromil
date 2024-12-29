@@ -118,7 +118,7 @@ public class SecurityConfig {
                                                         .hasAnyRole("ADMIN", "OWNER"); // check editWorkerWithImage
 
 
-
+                                        
 
                                         http.requestMatchers(HttpMethod.GET, "/gasolineras/{idGasolinera}/top-trabajador-temporal" ).hasRole("OWNER"); //Top provisional
 

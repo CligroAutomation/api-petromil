@@ -138,10 +138,10 @@ public class TopWorkerScheduler {
                         }
                         case EXCELLENT -> {
                             totalScoreAverage += 5;
-                            highestPerformanceForWorker += 0.5;
+                            highestPerformanceForWorker += 1;
 
                             totalScoreAverage2 += 5;
-                            highestPerformanceForWorker2 += 0.5;
+                            highestPerformanceForWorker2 += 1;
 
 
                         }

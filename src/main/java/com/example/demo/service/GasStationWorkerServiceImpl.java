@@ -512,10 +512,10 @@ public class GasStationWorkerServiceImpl {
                         }
                         case EXCELLENT -> {
                             totalScore1 += 5;
-                            performanceScore1+= 0.5;
+                            performanceScore1+= 1;
 
                             totalScore2 += 5;
-                            performanceScore2+= 0.5;
+                            performanceScore2+= 1;
 
 
                         }

@@ -2,12 +2,16 @@ package com.example.demo.service;
 
 import com.example.demo.dao.GasStationRepository;
 import com.example.demo.dao.OwnerRepository;
+import com.example.demo.dao.TopGasStationRepository;
 import com.example.demo.domain.GasStation;
 import com.example.demo.domain.Owner;
+import com.example.demo.domain.TopGasStation;
 import com.example.demo.domain.dto.GasStationRequest;
 import com.example.demo.domain.dto.GasStationResponse;
 import com.example.demo.domain.dto.GasStationsByOwnerResponse;
+import com.example.demo.domain.dto.TopGasStationResponse;
 import com.example.demo.enums.State;
+import com.example.demo.enums.TopType;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -16,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -31,6 +36,9 @@ public class GasStationServiceImpl {
 
     @Autowired
     private CloudinaryService cloudinaryService;
+
+    @Autowired
+    private TopGasStationRepository topGasStationRepository;
 
     @Transactional
     public GasStationResponse createGasStation(GasStationRequest gasStationRequest, Long idOwner, MultipartFile logo,
@@ -336,5 +344,46 @@ public class GasStationServiceImpl {
 
         throw new RuntimeException("Gasolinera ya está inactiva");
     }
+
+
+    public TopGasStationResponse getTopGasStation(Long idPropietario, String mes, TopType topType) {
+
+        Optional<Owner> owner = ownerRepository.findById(idPropietario);
+
+        if (owner.isEmpty() || owner.get().getUser().getState() == State.INACTIVE) {
+            throw new RuntimeException("El propietario no existe");
+        }
+
+        Owner own = owner.get();
+
+        if(own.getGasStations() == null || own.getGasStations().isEmpty()) {
+            throw new RuntimeException("No tienes gasolineras en estos momentos ");
+        }
+
+        Optional<TopGasStation> topGasStation = topGasStationRepository.findByOwnerIdAndMonthIgnoreCaseAndTopType(idPropietario, mes, topType);
+
+        if(topGasStation.isEmpty()) {
+            throw new RuntimeException("No hay mejor gasolinera en el top de "+topType+" para el mes de "+mes);
+        }
+
+
+
+        TopGasStationResponse response = new TopGasStationResponse(topGasStation.get().getId(),
+                topGasStation.get().getAverageScore(),
+                topGasStation.get().getBadScores(),
+                topGasStation.get().getCommentsHighlighted(),
+                topGasStation.get().getMonth(),
+                topGasStation.get().getPerformanceScore(),
+                topGasStation.get().getGasStation().getId(),
+                topGasStation.get().getTopType(),
+                topGasStation.get().getOwner().getId()
+        );
+
+        return response;
+
+    }
+
+
+
 
 }

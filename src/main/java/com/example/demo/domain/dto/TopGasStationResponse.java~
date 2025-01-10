@@ -1,0 +1,5 @@
+package com.example.demo.domain.dto;
+
+public record TopGasStationResponse(Long idTopGasStation, Double averageScore, Integer badScores,
+                                    String commentsHighlighted, String month, Double performanceScore, Long idGasStation, ) {
+}

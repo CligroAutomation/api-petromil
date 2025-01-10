@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface SurveyRepository extends JpaRepository<Survey, Long> {
 
@@ -35,6 +36,12 @@ public interface SurveyRepository extends JpaRepository<Survey, Long> {
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate,
             @Param("gasStationId") Long workerId);
+
+
+    @Query("SELECT s FROM Survey s WHERE s.dateTime BETWEEN :starDate AND :endDate ORDER BY s.id ASC")
+    List<Survey> findSurveysBetweenDates(
+            @Param("starDate") LocalDateTime starDate,
+            @Param("endDate") LocalDateTime endDate);
 
 
 

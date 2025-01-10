@@ -5,10 +5,8 @@ import com.example.demo.dao.GasStationWorkerRepository;
 import com.example.demo.dao.OwnerRepository;
 import com.example.demo.domain.GasStation;
 import com.example.demo.domain.GasStationWorker;
-import com.example.demo.domain.dto.GasStationWorkerRequest;
-import com.example.demo.domain.dto.GasStationWorkerResponse;
-import com.example.demo.domain.dto.GlobalErrorResponse;
-import com.example.demo.domain.dto.GlobalSuccessResponse;
+import com.example.demo.domain.dto.*;
+import com.example.demo.enums.TopType;
 import com.example.demo.service.GasStationWorkerServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -236,6 +234,43 @@ public class GasStationWorkerController {
                                 "Trabajador editado correctamente",
                                 worker);
                 return new ResponseEntity<>(response, HttpStatus.OK);
+
+        }
+
+
+
+        @GetMapping("/{idGasolinera}/top-trabajador-temporal")
+        public ResponseEntity<?> getBestWorkerInMonthProvitional(@PathVariable Long idGasolinera, Principal principal) {
+
+                GlobalSuccessResponse<?> response;
+                List<TopGasStationWorkerResponse> bestGasStationWorker = gasStationWorkerService.getBestWorkerInMonthProvitional(idGasolinera, principal);
+                response = new GlobalSuccessResponse<>(
+                        true,
+                        "Lista de trabajadores encontradas correctamente",
+                        bestGasStationWorker);
+                return new ResponseEntity<>(response, HttpStatus.OK);
+
+        }
+
+
+        @GetMapping("/{idGasolinera}/top-gasolinera-mensual/{mes}/tipo-top/{top}")
+        public ResponseEntity<?> getBestWorkerInMonth(@PathVariable Long idGasolinera, @PathVariable String mes,
+                                                      @PathVariable TopType top, Principal principal) {
+
+                GlobalSuccessResponse<?> response;
+                TopGasStationWorkerResponse bestGasStationWorker = gasStationWorkerService.getTopGasStationWorkerByIdGasStationAndMonthAndTopType(idGasolinera, mes, top, principal);
+
+                response = new GlobalSuccessResponse<>(
+                        true,
+                        "Mejor Trabajador encontrado",
+                        bestGasStationWorker);
+                return new ResponseEntity<>(response, HttpStatus.OK);
+
+
+
+
+
+
 
         }
 

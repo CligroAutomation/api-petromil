@@ -3,6 +3,7 @@ package com.example.demo.config.controller;
 import com.example.demo.dao.GasStationRepository;
 import com.example.demo.dao.GasStationWorkerRepository;
 import com.example.demo.dao.OwnerRepository;
+import com.example.demo.dao.SurveyRepository;
 import com.example.demo.domain.GasStation;
 import com.example.demo.domain.GasStationWorker;
 import com.example.demo.domain.dto.*;
@@ -32,6 +33,9 @@ public class SurveyController {
     @Autowired
     private GasStationRepository gasStationRepository;
 
+    @Autowired
+    private SurveyRepository surveyRepository;
+
     @PostMapping
     public ResponseEntity<?> postSurvey(@RequestBody SurveyRequest surveyRequest) {
         System.out.println("PostMapping survey controller");
@@ -49,7 +53,8 @@ public class SurveyController {
     }
 
     @GetMapping("/trabajadores/{idTrabajador}")
-    public ResponseEntity<?> getSurveyByIdGasStationWorker(@PathVariable Long idTrabajador, Principal principal, Pageable pageable) {
+    public ResponseEntity<?> getSurveyByIdGasStationWorker(@PathVariable Long idTrabajador, Principal principal,
+            Pageable pageable) {
 
         System.out.println("Controlador getSurveyByIdGasStationWorker ");
 
@@ -96,7 +101,8 @@ public class SurveyController {
     }
 
     @GetMapping("/gasolineras/{idGasStation}")
-    public ResponseEntity<?> getSurveyByIdGasStation(@PathVariable Long idGasStation, Principal principal, Pageable pageable) {
+    public ResponseEntity<?> getSurveyByIdGasStation(@PathVariable Long idGasStation, Principal principal,
+            Pageable pageable) {
 
         System.out.println(pageable);
         System.out.println("Controlador getSurveyByIdGasStation");
@@ -131,12 +137,12 @@ public class SurveyController {
 
         // Si es ADMIN o tiene permisos, obtener las encuestas de la gasolinera
         SurveyGasStationResponse survey = surveyService.getSurveyByIdGasStation(idGasStation, pageable);
-
+        Long count = surveyRepository.countAllSurvey(idGasStation);
         // Respuesta exitosa
         response = new GlobalSuccessResponse<>(
                 true,
                 "Lista de encuestas asignadas a la gasolinera obtenidas correctamente",
-                survey);
+                survey, count);
         return new ResponseEntity<>(response, HttpStatus.OK);
 
     }

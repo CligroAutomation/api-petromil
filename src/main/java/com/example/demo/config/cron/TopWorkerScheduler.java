@@ -8,7 +8,9 @@ import com.example.demo.domain.GasStation;
 import com.example.demo.domain.GasStationWorker;
 import com.example.demo.domain.Survey;
 import com.example.demo.domain.TopGasStationWorker;
+import com.example.demo.domain.dto.TopGasStationWorkerResponse;
 import com.example.demo.enums.Rating;
+import com.example.demo.enums.TopType;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -18,6 +20,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -38,9 +41,11 @@ public class TopWorkerScheduler {
 
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     @Transactional
-    //@Scheduled(cron = "0 * * * * ?")
+    //@Scheduled(cron = "0 * * * * ?") //cada minuto
     @Scheduled(cron = "@monthly")
     public void calculateTopWorkers() {
+
+
 
 // Hora actual (primer día del mes a las 00:00:00, porque el cron lo asegura)
         LocalDateTime currentTime = LocalDateTime.now();
@@ -59,7 +64,7 @@ public class TopWorkerScheduler {
 
         if (gasStations.isEmpty()) {
             System.out.println("No hay gasolineras");
-            return;
+            throw new RuntimeException("No hay gasolineras");
         }
 
         // Recorrer todas las gasolineras
@@ -73,10 +78,16 @@ public class TopWorkerScheduler {
             }
 
             // Inicializar las variables para la comparación
-            Double highestAverage = 0.0;
+            Double highestAverage = -Double.MAX_VALUE; ;
             GasStationWorker topWorker = null;
-            Double highestPerformance = 0.0;
+            Double highestPerformance = -Double.MAX_VALUE; ;
             Integer badResponses = 0;
+
+
+            Double highestAverage2 = -Double.MAX_VALUE; ;
+            GasStationWorker topWorker2 = null;
+            Double highestPerformance2 = -Double.MAX_VALUE; ;
+            Integer badResponses2 = 0;
 
             // Recorrer todos los trabajadores de la gasolinera
             for (GasStationWorker gsw : gasStationWorkers) {
@@ -99,6 +110,11 @@ public class TopWorkerScheduler {
                 Double highestPerformanceForWorker = 0.0;
                 Integer badResponsesForWorker = 0;
 
+
+                Double totalScoreAverage2 = 0.0;
+                Double highestPerformanceForWorker2 = 0.0;
+                Integer badResponsesForWorker2 = 0;
+
                 for (Survey survey : surveys) {
                     System.out.println(survey.getGasStationWorker().getName());
                     switch (survey.getRating()) {
@@ -106,20 +122,41 @@ public class TopWorkerScheduler {
                             totalScoreAverage -= 2.5;
                             highestPerformanceForWorker -= 1;
                             badResponsesForWorker += 1;
+
+                            totalScoreAverage2 -= 2.5;
+                            highestPerformanceForWorker2 -= 1;
+                            badResponsesForWorker2 += 1;
+
                         }
                         case REGULAR -> {
                             totalScoreAverage += 2.5;
                             highestPerformanceForWorker += 0.5;
+
+                            totalScoreAverage2 += 2.5;
+                            highestPerformanceForWorker2 += 0.5;
+
                         }
                         case EXCELLENT -> {
                             totalScoreAverage += 5;
-                            highestPerformanceForWorker += 0.5;
+                            highestPerformanceForWorker += 1;
+
+                            totalScoreAverage2 += 5;
+                            highestPerformanceForWorker2 += 1;
+
+
                         }
                     }
                 }
 
                 // Promedio de la puntuación
                 double averageScore = totalScoreAverage / surveys.size();
+                double averageScore2 = totalScoreAverage2 / surveys.size();
+
+                System.out.println("Trabajador: " + gsw.getName() +
+                        ", Encuestas: " + surveys.size() +
+                        ", Promedio: " + averageScore +
+                        ", Rendimiento_"+ highestPerformanceForWorker +
+                        ", Bad scores: " + badResponsesForWorker);
 
                 // Comparar con el trabajador con el mejor puntaje
                 if (averageScore > highestAverage) {
@@ -128,24 +165,55 @@ public class TopWorkerScheduler {
                     highestPerformance = highestPerformanceForWorker;
                     badResponses = badResponsesForWorker;
                 }
+
+                if(highestPerformanceForWorker2 > highestPerformance2){
+                    highestPerformance2 = highestPerformanceForWorker2;
+                    topWorker2 = gsw;
+                    highestAverage2 = averageScore2;
+                    badResponses2 = badResponsesForWorker2;
+                }
             }
 
             // Si se ha encontrado el mejor trabajador
             if (topWorker != null) {
-                TopGasStationWorker topGasStationWorker = new TopGasStationWorker();
-                topGasStationWorker.setGasStation(gs);
-                topGasStationWorker.setWorker(topWorker);
-                topGasStationWorker.setAverageScore(highestAverage);
-                topGasStationWorker.setPerformanceScore(highestPerformance);
-                topGasStationWorker.setBadScores(badResponses);
-                topGasStationWorker.setMonth(getPreviousMonth());
+                TopGasStationWorker topGasStationWorker1 = new TopGasStationWorker();
+                topGasStationWorker1.setGasStation(gs);
+                topGasStationWorker1.setWorker(topWorker);
+                topGasStationWorker1.setAverageScore(highestAverage);
+                topGasStationWorker1.setPerformanceScore(highestPerformance);
+                topGasStationWorker1.setBadScores(badResponses);
+                topGasStationWorker1.setMonth(getPreviousMonth());
+                topGasStationWorker1.setTopType(TopType.AVERAGE);
 
-                System.out.println("Se agregó el trabajador: " + topGasStationWorker.getWorker().getName());
+                System.out.println("Se agregó el trabajador: " + topGasStationWorker1.getWorker().getName() + "con promedio de: " + topGasStationWorker1.getAverageScore()+"y rendimiento de "+ topGasStationWorker1.getPerformanceScore());
 
                 // Guardar en la base de datos
-                topGasStationWorkerRepository.save(topGasStationWorker);
+                topGasStationWorkerRepository.save(topGasStationWorker1);
+
+
             }
+
+            if(topWorker2 != null){
+                TopGasStationWorker topGasStationWorker2 = new TopGasStationWorker();
+                topGasStationWorker2.setGasStation(gs);
+                topGasStationWorker2.setWorker(topWorker2);
+                topGasStationWorker2.setAverageScore(highestAverage2);
+                topGasStationWorker2.setPerformanceScore(highestPerformance2);
+                topGasStationWorker2.setBadScores(badResponses2);
+                topGasStationWorker2.setMonth(getPreviousMonth());
+                topGasStationWorker2.setTopType(TopType.PERFORMANCESCORE);
+
+                System.out.println("Se agregó el trabajador: " + topGasStationWorker2.getWorker().getName() + "con promedio de: " + topGasStationWorker2.getAverageScore()+"y rendimiento de "+ topGasStationWorker2.getPerformanceScore());
+                // Guardar en la base de datos
+                topGasStationWorkerRepository.save(topGasStationWorker2);
+
+
+            }
+
+
         }
+
+
     }
 
 

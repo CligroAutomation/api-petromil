@@ -1,5 +1,6 @@
 package com.example.demo.domain;
 
+import com.example.demo.enums.TopType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.Getter;
@@ -40,11 +41,13 @@ public class TopGasStationWorker {
     @Column(name = "comments_highlighted")
     private String commentsHighlighted = "";
 
+    TopType topType;
+
 
     public TopGasStationWorker() {}
 
     public TopGasStationWorker(String month, GasStation gasStation, GasStationWorker worker, Double performanceScore,
-                               Double averageScore, Integer badScores) {
+                               Double averageScore, Integer badScores, TopType topType) {
         this.month = month;
         this.gasStation = gasStation;
         this.worker = worker;
@@ -52,6 +55,7 @@ public class TopGasStationWorker {
         this.averageScore = averageScore;
         this.badScores = badScores;
         this.commentsHighlighted = "";
+        this.topType = topType;
 
     }
 

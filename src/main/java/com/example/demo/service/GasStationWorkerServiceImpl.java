@@ -2,11 +2,18 @@ package com.example.demo.service;
 
 import com.example.demo.dao.GasStationRepository;
 import com.example.demo.dao.GasStationWorkerRepository;
+import com.example.demo.dao.SurveyRepository;
+import com.example.demo.dao.TopGasStationWorkerRepository;
 import com.example.demo.domain.GasStation;
 import com.example.demo.domain.GasStationWorker;
+import com.example.demo.domain.Survey;
+import com.example.demo.domain.TopGasStationWorker;
 import com.example.demo.domain.dto.GasStationWorkerRequest;
 import com.example.demo.domain.dto.GasStationWorkerResponse;
+import com.example.demo.domain.dto.TopGasStationWorkerResponse;
+
 import com.example.demo.enums.State;
+import com.example.demo.enums.TopType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,7 +21,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
+import java.security.Principal;
+import java.time.LocalDateTime;
+import java.time.format.TextStyle;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 @Service
@@ -27,7 +39,13 @@ public class GasStationWorkerServiceImpl {
     private GasStationRepository gasStationRepository;
 
     @Autowired
+    private SurveyRepository surveyRepository;
+
+    @Autowired
     private CloudinaryService cloudinaryService;
+
+    @Autowired
+    private TopGasStationWorkerRepository topGasStationWorkerRepository;
 
     @Transactional
     public GasStationWorkerResponse addGasStationWorker(GasStationWorker worker) {
@@ -394,6 +412,214 @@ public class GasStationWorkerServiceImpl {
         throw new RuntimeException("Este worker no existe o no hay gasStation ");
 
     }
+
+
+    public List<TopGasStationWorkerResponse> getBestWorkerInMonthProvitional(Long idGasStation, Principal principal) {
+
+
+        LocalDateTime currentTime = LocalDateTime.now();
+        LocalDateTime firstDayOfMonth = currentTime.withDayOfMonth(1).toLocalDate().atStartOfDay();
+
+
+        // Obtener el nombre del mes en español (o cualquier otro idioma)
+        String month = firstDayOfMonth.getMonth()
+                .getDisplayName(TextStyle.FULL, new Locale("es", "ES"));
+
+        System.out.println("El mes de firstDayOfMonth es: " + month);
+
+
+        Optional<GasStation> gasStationOptional = gasStationRepository.findById(idGasStation);
+
+        if (gasStationOptional.isEmpty()) {
+            throw new RuntimeException("Gasolinera no encontrada");
+        }
+
+        GasStation gasStation = gasStationOptional.get();
+
+        System.out.println(principal.getName());
+        System.out.println(gasStation.getOwner().getUser().getEmail());
+
+        if(!gasStation.getOwner().getUser().getEmail().equals(principal.getName())){
+            throw new RuntimeException("No eres el dueño de la gasolinera");
+        }
+
+        List<GasStationWorker> gasStationWorkers = gasStationWorkerRepository.findByGasStationId(gasStation.getId());
+
+
+
+        if (gasStationWorkers.isEmpty()) {
+            throw new RuntimeException("No hay trabajadores en la gasolinera");
+        }
+
+        //Trabajador por prom
+        double highestAverage1 = -Double.MAX_VALUE; // Inicializar con un valor bajo
+        double highestperformanceScore1 = -Double.MAX_VALUE;
+        Integer badScores1 = 0;
+
+        //Trabajador por Performance
+        double highestAverage2 = -Double.MAX_VALUE; // Inicializar con un valor bajo
+        double highestperformanceScore2 = -Double.MAX_VALUE;
+        Integer badScores2 = 0;
+
+        GasStationWorker topWorker = null;
+        GasStationWorker topWorker2 = null;
+
+
+        for (GasStationWorker gasStationWorker : gasStationWorkers) {
+
+            if (gasStationWorker.getState() == State.ACTIVE) {
+
+                // Obtener encuestas para el trabajador en el rango de fechas
+                List<Survey> surveys = surveyRepository.findSurveysBetweenDatesAndWorkerId(firstDayOfMonth, currentTime, gasStationWorker.getId());
+
+                if (surveys.isEmpty()) {
+                    System.out.println("Trabajador: " + gasStationWorker.getName() + " no tiene encuestas en el rango.");
+                    continue; // Si no hay encuestas, pasamos al siguiente trabajador
+                }
+
+                // Calcular promedio de puntaje para el trabajador actual
+                double totalScore1 = 0.0;
+                double performanceScore1 = 0.0;
+                Integer badScoresw1 = 0;
+
+                double totalScore2 = 0.0;
+                double performanceScore2 = 0.0;
+                Integer badScoresw2 = 0;
+
+
+                for (Survey survey : surveys) {
+                    switch (survey.getRating()) {
+                        case BAD ->{
+
+                            badScoresw1 += 1;
+                            totalScore1 -= 2.5;
+                            performanceScore1 -= 1;
+
+                            badScoresw2 += 1;
+                            totalScore2 -= 2.5;
+                            performanceScore2 -= 1;
+
+
+                        }
+                        case REGULAR ->{
+
+                            totalScore1 += 2.5;
+                            performanceScore1  += 0.5;
+
+                            totalScore2 += 2.5;
+                            performanceScore2  += 0.5;
+
+                        }
+                        case EXCELLENT -> {
+                            totalScore1 += 5;
+                            performanceScore1+= 1;
+
+                            totalScore2 += 5;
+                            performanceScore2+= 1;
+
+
+                        }
+                    }
+                }
+
+                double averageScore1 = totalScore1 / surveys.size();
+                double averageScore2 = totalScore2 / surveys.size();
+
+
+                // Imprimir datos para depuración
+                System.out.println("Trabajador: " + gasStationWorker.getName() +
+                        ", Encuestas: " + surveys.size() +
+                        ", Promedio: " + averageScore1 +
+                        ", Rendimiento_"+ performanceScore1 +
+                        ", Bad scores: " + badScoresw1);
+
+                // Actualizar el mejor trabajador si el promedio es mayor
+                if (averageScore1 > highestAverage1) {
+                    highestAverage1 = averageScore1;
+                    highestperformanceScore1 = performanceScore1;
+                    badScores1 = badScoresw1;
+                    topWorker = gasStationWorker;
+                }
+
+                if(performanceScore2 > highestperformanceScore2){
+                    highestperformanceScore2 = performanceScore2;
+                    badScores2 = badScoresw2;
+                    highestAverage2 = averageScore2;
+                    topWorker2 = gasStationWorker;
+                }
+
+
+
+            } else {
+                System.out.println("Trabajador: " + gasStationWorker.getName() + " está inactivo.");
+            }
+        }
+
+        List<TopGasStationWorkerResponse> response = new ArrayList<>();
+
+
+        if (topWorker != null) {
+            System.out.println("Mejor trabajador PROM: " + topWorker.getName() + ", Promedio: " + highestAverage1);
+            TopGasStationWorkerResponse worker1 = new TopGasStationWorkerResponse(null,highestAverage1,badScores1,"",
+                    highestperformanceScore1, gasStation.getId(), topWorker.getId(),  TopType.AVERAGE);
+            response.add(worker1);
+        }
+
+        if (topWorker2 != null) {
+            System.out.println("Mejor trabajador PERFORMANCE: " + topWorker2.getName() + ", Performance: " + highestperformanceScore2);
+            TopGasStationWorkerResponse worker2 = new TopGasStationWorkerResponse(null,highestAverage2,badScores2,"",
+                    highestperformanceScore2, gasStation.getId(), topWorker2.getId(),  TopType.PERFORMANCESCORE);
+            response.add(worker2);
+        }
+
+        if(topWorker2 == null & topWorker == null){
+            throw new RuntimeException("a ningún trabajador le han hecho encuestas en lo que va del mes");
+
+        }
+        return response;
+
+    }
+
+    public TopGasStationWorkerResponse getTopGasStationWorkerByIdGasStationAndMonthAndTopType(Long idGasStation, String month, TopType topType, Principal principal) {
+
+
+        Optional<GasStation> gasStation = gasStationRepository.findById(idGasStation);
+        if(gasStation.isEmpty()){
+            throw new RuntimeException("No se encontro la gasolinera");
+        }
+        GasStation gas = gasStation.get();
+
+        if(!gas.getOwner().getUser().getEmail().equals(principal.getName())){
+            throw new RuntimeException("No puedes acceder a una gasolinera que no es tuya");
+        }
+        Optional<TopGasStationWorker> topGasStationWorker = topGasStationWorkerRepository.findByGasStationIdAndMonthIgnoreCaseAndTopType(idGasStation, month, topType);
+
+        if(topGasStationWorker.isEmpty()){
+            throw new RuntimeException("No hay mejor trabajador en la gasolinera de nombre+ "+gas.getName() +" para el mes de "+month+" con el top de "+topType);
+        }
+        TopGasStationWorker top = topGasStationWorker.get();
+        return new TopGasStationWorkerResponse(
+
+                top.getId(),
+                top.getAverageScore(),
+                top.getBadScores(),
+                top.getCommentsHighlighted(),
+                top.getPerformanceScore(),
+                top.getGasStation().getId(),
+                top.getWorker().getId(),
+                top.getTopType()
+        );
+
+
+
+
+
+
+
+
+    }
+
+
 
     private GasStationWorkerResponse saveAndConvertResponse(GasStationWorker worker) {
         GasStationWorker savedWorker = gasStationWorkerRepository.save(worker);

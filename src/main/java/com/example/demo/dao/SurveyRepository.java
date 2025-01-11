@@ -11,34 +11,38 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface SurveyRepository extends JpaRepository<Survey, Long> {
 
-    Page<Survey> findByGasStationWorker(GasStationWorker gasStationWorker, Pageable pageable);
+        Page<Survey> findByGasStationWorker(GasStationWorker gasStationWorker, Pageable pageable);
 
-    Page<Survey> findByGasStation(GasStation gasStation, Pageable pageable);
+        Page<Survey> findByGasStation(GasStation gasStation, Pageable pageable);
 
-//    @Query("SELECT s FROM Survey s WHERE s.id_gas_station_worker = :workerId AND s.dateTime BETWEEN :start AND :end")
-//    List<Survey> findByWorkerIdAndDateBetween(@Param("workerId") Long workerId,
-//                                            @Param("start") LocalDateTime start,
-//                                            @Param("end") LocalDateTime end);
+        // @Query("SELECT s FROM Survey s WHERE s.id_gas_station_worker = :workerId AND
+        // s.dateTime BETWEEN :start AND :end")
+        // List<Survey> findByWorkerIdAndDateBetween(@Param("workerId") Long workerId,
+        // @Param("start") LocalDateTime start,
+        // @Param("end") LocalDateTime end);
 
+        @Query("SELECT s FROM Survey s WHERE s.dateTime BETWEEN :startDate AND :endDate AND s.gasStationWorker.id = :workerId ORDER BY s.id ASC")
+        List<Survey> findSurveysBetweenDatesAndWorkerId(
+                        @Param("startDate") LocalDateTime startDate,
+                        @Param("endDate") LocalDateTime endDate,
+                        @Param("workerId") Long workerId);
 
-    @Query("SELECT s FROM Survey s WHERE s.dateTime BETWEEN :startDate AND :endDate AND s.gasStationWorker.id = :workerId ORDER BY s.id ASC")
-    List<Survey> findSurveysBetweenDatesAndWorkerId(
-            @Param("startDate") LocalDateTime startDate,
-            @Param("endDate") LocalDateTime endDate,
-            @Param("workerId") Long workerId);
+        @Query("SELECT s FROM Survey s WHERE s.dateTime BETWEEN :startDate AND :endDate AND s.gasStation.id = :gasStationId ORDER BY s.id ASC")
+        List<Survey> findSurveysBetweenDatesAndGasStationId(
+                        @Param("startDate") LocalDateTime startDate,
+                        @Param("endDate") LocalDateTime endDate,
+                        @Param("gasStationId") Long workerId);
 
-    @Query("SELECT s FROM Survey s WHERE s.dateTime BETWEEN :startDate AND :endDate AND s.gasStation.id = :gasStationId ORDER BY s.id ASC")
-    List<Survey> findSurveysBetweenDatesAndGasStationId(
-            @Param("startDate") LocalDateTime startDate,
-            @Param("endDate") LocalDateTime endDate,
-            @Param("gasStationId") Long workerId);
+        @Query("SELECT s FROM Survey s WHERE s.dateTime BETWEEN :starDate AND :endDate ORDER BY s.id ASC")
+        List<Survey> findSurveysBetweenDates(
+                        @Param("starDate") LocalDateTime starDate,
+                        @Param("endDate") LocalDateTime endDate);
 
-
+        @Query("SELECT COUNT(s) FROM Survey s WHERE s.gasStation.id = :gasStationId")
+        Long countAllSurvey(@Param("gasStationId") Long gasStationId);
 
 }
-
-
-

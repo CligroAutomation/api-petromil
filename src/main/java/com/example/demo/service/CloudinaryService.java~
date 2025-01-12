@@ -25,6 +25,6 @@ public class CloudinaryService {
                                 .height(500)
                                 .crop("fill")
                                 .gravity("auto")));
-        return uploadResult.get("secure_url").toString();
+        return uploadResult.get("url").toString();
     }
 }

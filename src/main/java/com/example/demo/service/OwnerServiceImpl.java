@@ -261,6 +261,7 @@ public class OwnerServiceImpl {
         UserEntity user = own.getUser();
 
         user.setState(State.INACTIVE);
+        user.setEnabled(false);
         userRepository.save(user);
         OwnerResponse or = new OwnerResponse(user.getOwner().getId(), user.getIdentification(),
                 user.getOwner().getName(), user.getOwner().getPhone(), user.getEmail(), user.getPassword());

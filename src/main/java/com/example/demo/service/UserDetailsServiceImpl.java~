@@ -135,11 +135,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
         }
 
-        //Cuando un usario es eliminado, no puede logearse, valida eso
-        if (!userDetails.isEnabled()) {
-            throw new BadCredentialsException("Ivalid username or password.");
-        }
-
         // Compara la contraseña proporcionada por el usuario con la contraseña
         // almacenada en la base de datos.
         if (!passwordEncoder.matches(password, userDetails.getPassword())) {

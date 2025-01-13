@@ -35,3 +35,6 @@ build/
 # Ignorar el archivo application.properties
 src/main/resources/application.properties
 
+*.java~
+
+

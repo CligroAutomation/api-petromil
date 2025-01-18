@@ -69,7 +69,6 @@ public class OwnerServiceImpl {
                 user.setAccountNoLocked(true);
                 user.setCredentialNoExpired(true);
                 user.setState(State.ACTIVE);
-                user.setEnabled(true);
 
                 // Buscar el rol ADMIN existente
                 Role adminRole = roleRepository.findByRoleEnum(RoleEnum.OWNER)

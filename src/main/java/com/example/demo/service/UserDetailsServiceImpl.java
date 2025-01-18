@@ -116,7 +116,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                             .toArray(AuthResponse.UserDTO.Role[]::new),
                     ownerId // Incluir ownerId, que puede ser null
             );
-
             return new AuthResponse(accessToken, userDTO);
         } catch (UsernameNotFoundException | BadCredentialsException ex) {
             return null; // Retornar null si ocurre un error de autenticación
@@ -133,6 +132,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
             throw new BadCredentialsException("Ivalid username or password.");
 
+        }
+
+        if(!userDetails.isEnabled()) {
+            throw new BadCredentialsException("Ivalid user status.");
         }
 
         // Compara la contraseña proporcionada por el usuario con la contraseña
@@ -186,6 +189,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 .accountNoLocked(true)
                 .accountNoExpired(true)
                 .credentialNoExpired(true)
+                .isEnabled(true)
                 .build();
 
         UserEntity userCreated = userRepository.save(userEntity);

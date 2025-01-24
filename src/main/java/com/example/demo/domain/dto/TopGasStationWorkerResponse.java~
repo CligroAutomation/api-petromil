@@ -1,5 +1,0 @@
-package com.example.demo.domain.dto;
-
-JsonPropertyOrder({"topGasStationWorkerid", "averageScore", "badScores", "commentsHighlighted", "performanceScore", "idGasStation", "gasStationWorkerId", "topType"})
-public record TopGasStationWorkerResponse() {
-}
